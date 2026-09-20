@@ -1,0 +1,233 @@
+body {
+    font-family: system-ui, sans-serif;
+    background: #111;
+    color: #eee;
+    margin: 0;
+    padding: 20px;
+}
+h1 { color: #6cf; }
+h2 { color: #9cf; border-bottom: 1px solid #333; padding-bottom: 4px; }
+
+section { margin-bottom: 30px; }
+
+.new-task {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.new-task select, .new-task input {
+    padding: 6px 10px;
+    background: #000;
+    color: #0f0;
+    border: 1px solid #333;
+    border-radius: 4px;
+    font-family: monospace;
+}
+.new-task input { flex: 1; min-width: 250px; }
+.new-task button {
+    padding: 6px 14px;
+    background: #6cf;
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.new-task button:hover { background: #8df; }
+
+/* Боты */
+.bot, .task {
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: #1a1a1a;
+}
+.bot.online { border-color: #2ecc71; }
+.bot.offline { border-color: #e74c3c; opacity: 0.6; }
+
+.task.pending { border-color: #f1c40f; }
+.task.running { border-color: #3498db; }
+.task.done { border-color: #2ecc71; }
+.task.failed { border-color: #e74c3c; }
+
+.row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.row .status { margin-left: auto; font-weight: bold; }
+.row button.rm {
+    background: #333;
+    color: #f66;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 2px 8px;
+}
+.row button.rm:hover { background: #444; }
+
+.bot .info, .bot .modules, .task .meta {
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+}
+
+/* Результат задачи */
+.task .result { margin-top: 10px; }
+
+.task details {
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin: 6px 0;
+    background: #141414;
+}
+.task details summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: #9cf;
+    padding: 2px 0;
+}
+.task details summary:hover { color: #cf8; }
+
+table.kv {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 6px;
+}
+table.kv td {
+    padding: 4px 8px;
+    border-bottom: 1px solid #222;
+    vertical-align: top;
+}
+table.kv td.k {
+    color: #888;
+    width: 180px;
+    font-family: monospace;
+}
+table.kv td.v {
+    color: #ddd;
+    word-break: break-all;
+}
+table.kv tr.good td.v { color: #2ecc71; }
+table.kv tr.bad td.v  { color: #e74c3c; }
+table.kv tr.warn td.v { color: #f1c40f; }
+
+.subs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+.subs code {
+    background: #000;
+    color: #0f0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.err {
+    color: #e74c3c;
+    font-family: monospace;
+    font-size: 13px;
+    margin-top: 6px;
+}
+.warn {
+    color: #f1c40f;
+    font-size: 13px;
+    margin-top: 6px;
+}
+/* username */
+.username-summary {
+    padding: 8px 0;
+    font-size: 14px;
+}
+.good-text { color: #2ecc71; font-weight: bold; }
+.warn-text { color: #f1c40f; font-weight: bold; }
+
+.username-filter {
+    display: flex;
+    gap: 16px;
+    padding: 8px 0;
+    font-size: 13px;
+    color: #bbb;
+}
+.username-filter label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+table.us-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 6px;
+}
+table.us-table th {
+    text-align: left;
+    color: #9cf;
+    padding: 6px 8px;
+    border-bottom: 1px solid #333;
+    font-weight: normal;
+}
+table.us-table td {
+    padding: 4px 8px;
+    border-bottom: 1px solid #222;
+    vertical-align: top;
+}
+table.us-table tr.found td.us-site { color: #2ecc71; }
+table.us-table tr.notfound td.us-site { color: #555; }
+table.us-table tr.unknown td.us-site { color: #f1c40f; }
+table.us-table td.us-url a {
+    color: #6cf;
+    text-decoration: none;
+    word-break: break-all;
+    font-size: 12px;
+}
+table.us-table td.us-url a:hover { text-decoration: underline; }
+table.us-table code {
+    background: #000;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 11px;
+}
+/* прогресс-бар составной задачи */
+.progress {
+    margin: 6px 0;
+}
+.pbar {
+    width: 100%;
+    height: 6px;
+    background: #222;
+    border-radius: 3px;
+    overflow: hidden;
+}
+.pfill {
+    height: 100%;
+    background: linear-gradient(90deg, #2ecc71, #6cf);
+    transition: width 0.4s ease;
+}
+.pinfo {
+    font-size: 12px;
+    color: #888;
+    font-family: monospace;
+    margin-top: 4px;
+}
+
+/* строки подзадач в статусе pending / running */
+table.us-table tr.pending-row td.us-site { color: #f1c40f; }
+table.us-table tr.running-row td.us-site { color: #3498db; }
+/* сниппеты в person */
+.snippet {
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+    font-style: italic;
+}
