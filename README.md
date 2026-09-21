@@ -50,3 +50,279 @@
 
 ```bash
 pip install -r requirements.txt
+```
+
+## Запуск сервера
+
+```bash
+cd server
+python server.py
+```
+
+## Что должно быть в логе
+
+```text
+[*] startup: init_db()
+[+] DB initialized: C:\projects\geryon-recon\server\osint.db
+[*] startup: load_from_db()
+[+] loaded 0 bots, 0 tasks from DB — Meepo is ready
+[*] startup: done
+INFO:     Uvicorn running on http://127.0.0.1:5555
+```
+
+## Запуск агентов
+
+Открой второй терминал:
+
+```bash
+cd agent
+python agent.py --count N
+```
+
+Где `N` — количество агентов (голов).
+
+## Что должно быть в логе агентов
+
+```text
+[+] registered as a1b2c3d4 modules=['email', 'email_reg', 'domain', 'http_check', 'ip', 'phone', 'person', 'telegram', 'geo', 'exif']
+[+] registered as e5f6g7h8 modules=[...]
+[+] запущено 5 агентов
+```
+
+## Как открыть панель
+
+Открой браузер и перейди по адресу:
+
+```text
+http://127.0.0.1:5555
+```
+
+## Как пользоваться
+
+1. Выбери задачу из списка
+2. Введи цель
+3. Дождись результата в панели
+
+## Примеры целей
+
+| Тип | Пример |
+| --- | --- |
+| email | test@gmail.com |
+| email_reg | test@gmail.com |
+| domain | github.com |
+| username | durov |
+| ip | 8.8.8.8 |
+| phone | +79161234567 |
+| person | Павел Дуров |
+| telegram | @durov |
+| geo | 55.7558,37.6173 |
+| exif | C:\photos\IMG_1234.jpg |
+
+## Уведомления в Discord (опционально)
+
+1. Создай Webhook в Discord:
+   правой кнопкой по каналу → **Edit Channel** → **Integrations** → **Webhooks** → **New Webhook**.
+   Скопируй URL.
+
+2. Скопируй `server/.env.example` в `server/.env`:
+
+   ```bash
+   cd server
+   copy .env.example .env
+   ```
+
+3. Открой `.env` и вставь Webhook URL:
+
+   ```env
+   DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
+   ```
+
+4. Перезапусти сервер.
+
+Если `.env` не настроен — уведомления не приходят, но всё остальное работает.
+
+## Структура проекта
+
+```text
+geryon-recon/
+├── README.md
+├── LICENSE
+├── .gitignore
+├── requirements.txt
+├── server/
+│   ├── server.py
+│   ├── config.py
+│   ├── db.py
+│   ├── state.py
+│   ├── logic.py
+│   ├── notify.py
+│   ├── sites.py
+│   ├── models.py
+│   ├── .env.example
+│   └── routes/
+│       ├── agent.py
+│       └── panel.py
+├── agent/
+│   ├── agent.py
+│   ├── client.py
+│   └── modules/
+│       ├── __init__.py
+│       ├── email.py
+│       ├── email_reg.py
+│       ├── domain.py
+│       ├── http_check.py
+│       ├── ip.py
+│       ├── phone.py
+│       ├── person.py
+│       ├── telegram.py
+│       ├── geo.py
+│       └── exif.py
+└── panel/
+    ├── panel.html
+    ├── panel.js
+    ├── style.css
+    └── modules/
+        ├── bots.js
+        ├── tasks.js
+        ├── details.js
+        ├── utils.js
+        └── renders/
+            ├── index.js
+            ├── email.js
+            ├── email_reg.js
+            ├── domain.js
+            ├── username.js
+            ├── ip.js
+            ├── phone.js
+            ├── person.js
+            ├── telegram.js
+            ├── geo.js
+            └── exif.js
+```
+
+## Частые проблемы
+
+### Порт 5555 занят
+
+```bash
+Get-Process python | Stop-Process -Force
+```
+
+### Агенты не подключаются
+
+Проверь, что сервер запущен и открыт `http://127.0.0.1:5555`.
+
+### Панель пустая (404 на `/static/modules/renders/xxx.js`)
+
+Значит, JS-файл рендера отсутствует или лежит не там. Проверь:
+
+- файл существует в `panel/modules/renders/`
+- расширение `.js` (не `.js.txt`)
+- перезапусти сервер (static может кешироваться)
+- `Ctrl+F5` в браузере
+
+### geo: Overpass вернул 504 / 429 / 406
+
+Модуль `geo` использует два внешних сервиса:
+
+- **Nominatim** (OpenStreetMap) — геокодинг адреса/координат
+- **Overpass API** — поиск объектов рядом (кафе, банки, аптеки)
+
+**Overpass — публичный бесплатный сервис**, часто перегружен. Возможные ошибки:
+
+- **504 Gateway Timeout** — сервер не успел обработать запрос. Подожди 30 секунд и повтори.
+- **429 Too Many Requests** — превышен rate-limit (1 запрос/сек).
+- **406 Not Acceptable** — проблема с заголовками. Обнови `User-Agent` в `geo.py`.
+
+**Что делать:**
+
+1. Подожди 30 секунд и создай задачу снова.
+2. Смени зеркало Overpass в `agent/modules/geo.py`:
+
+   ```python
+   OVERPASS_URL = "https://overpass.kumi.systems/api/interpreter"
+   # альтернативы:
+   # OVERPASS_URL = "https://overpass.private.coffee/api/interpreter"
+   # OVERPASS_URL = "https://overpass.osm.jp/api/interpreter"
+   ```
+
+3. Уменьши `NEARBY_CATEGORIES` — меньше фильтров = быстрее ответ.
+
+**Важно:** если Overpass вернул ошибку — задача всё равно завершится (`status: done`), но без `nearby` (появится `nearby_error`). Адрес из Nominatim всё равно будет.
+
+**Nominatim требует честный User-Agent** с контактом. В `geo.py` замени:
+
+```python
+NOMINATIM_USER_AGENT = "geryon-recon/0.1 (твой_email@example.com)"
+```
+
+Без этого — могут забанить IP.
+
+### telegram: таймаут / connection error
+
+Модуль `telegram` обращается к `https://t.me/...`. **В РФ `t.me` заблокирован** — без VPN/прокси модуль работать не будет.
+
+**Что делать:**
+
+1. Системный VPN (Amnezia VPN, WireGuard) — Python подхватит автоматически.
+2. Или прокси в `agent/modules/telegram.py`.
+
+**Если VPN нет** — модуль вернёт `error: timeout`, задача завершится со `status: failed`. **Это не баг.**
+
+### exif: нет GPS в результате
+
+Модуль `exif` читает метаданные из **JPEG/HEIC**. Если фото **без GPS** (снято без геолокации, скачано из интернета, отредактировано, PNG) — поля `GPS` и `Адрес` **не появятся**. Остальное (дата, устройство, софт) — **будет**.
+
+**Совет:** для теста GPS возьми **свежее фото с телефона**, **не прошедшее через мессенджеры** (Telegram режет EXIF, если отправить «как фото»; если «как файл» — сохраняет).
+
+### holehe не работает
+
+Нужен установленный `.exe`. Проверь:
+
+```bash
+python -c "import holehe; print(holehe.__file__)"
+```
+
+## Дисклеймер
+
+⚠️ Инструмент предназначен для работы с открытыми источниками и **собственными данными**.
+
+Использование для сбора информации о третьих лицах без их согласия может нарушать законодательство РФ (ст. 137 УК РФ, 152-ФЗ «О персональных данных») и аналогичные законы других стран.
+
+Автор не несёт ответственности за неправомерное использование данного инструмента.
+
+**Соблюдай этику и закон.** OSINT — это про открытые данные, а не про слежку и «пробив».
+
+### Разрешено
+
+- Проверка собственных данных (email, домен, ник, IP, телефон, фото).
+- Проверка данных с письменного согласия владельца.
+- Проверка публичных персон по открытым источникам (в учебных целях).
+
+### Запрещено
+
+- Сбор информации о третьих лицах без их согласия.
+- Использование закрытых/серых баз данных.
+- Доксинг, сталкинг, шантаж, слежка.
+
+## Лицензия
+
+MIT License. Подробности — в файле [LICENSE](LICENSE).
+
+## Автор
+
+**REP_DOTA 2** — [github.com/annsterdam2000-oss](https://github.com/annsterdam2000-oss)
+
+Проект разрабатывается в учебных целях с 2026 года.
+
+---
+
+> *«Три тела, одна цель. Много голов, один разум. Герион смотрит.»*
+
+---
+
+> *«Quas. Wex. Exort. Server. Agent. Panel.*
+> *Три сферы — три тела — один разум.*
+> *Десять модулей — десять заклинаний.»*
+>
+> — **REP_DOTA 2**, ночная сборка

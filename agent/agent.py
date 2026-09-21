@@ -1,4 +1,5 @@
 # agent/agent.py
+# ☄ Each agent is a Meepo clone. One mind, many bodies.
 import argparse
 import threading
 import time

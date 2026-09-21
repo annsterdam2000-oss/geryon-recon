@@ -1,4 +1,5 @@
 # agent/client.py
+# ☄ Arc Warden's split — клиент отщепляется, говорит с сервером, возвращается.
 import platform
 import socket
 import time

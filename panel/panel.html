@@ -2,41 +2,68 @@
 <html lang="ru">
 <head>
     <meta charset="utf-8">
-    <title>OSINT Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Geryon Recon</title>
     <link rel="icon" href="data:,">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1>🕵️ OSINT Panel</h1>
 
-    <section class="new-task">
-        <h2>Новая задача</h2>
-        <select id="task-type">
-            <option value="email">email</option>
-            <option value="email_reg">email_reg (где зарегистрирован)</option>
-            <option value="domain">domain</option>
-            <option value="username">username</option>
-            <option value="ip">ip</option>
-            <option value="phone">phone</option>
-            <option value="person">person (ФИО)</option>
-            <option value="telegram">telegram (@username)</option>
-            <option value="geo">geo (координаты / адрес)</option>
-            <option value="exif">exif (путь к фото / URL)</option>
-        </select>
-        <input id="task-target" type="text" placeholder="email / домен / ник / IP / телефон / ФИО / @telegram / координаты / путь к фото">
-        <button id="task-add">Поставить задачу</button>
+<header class="topbar">
+    <div class="brand">
+        <span class="brand-icon">🛡</span>
+        <span class="brand-name">Geryon <span class="brand-sub">Recon</span></span>
+    </div>
+    <div class="topbar-meta">
+        <span class="dot"></span>
+        <span id="server-status">local · 127.0.0.1:5555</span>
+    </div>
+</header>
+
+<main class="container">
+
+    <section class="panel new-task-panel">
+        <h2 class="panel-title">Новая задача</h2>
+        <div class="new-task">
+            <select id="task-type">
+                <option value="email">email</option>
+                <option value="email_reg">email_reg (где зарегистрирован)</option>
+                <option value="domain">domain</option>
+                <option value="username">username</option>
+                <option value="ip">ip</option>
+                <option value="phone">phone</option>
+                <option value="person">person (ФИО)</option>
+                <option value="telegram">telegram (@username)</option>
+                <option value="geo">geo (координаты / адрес)</option>
+                <option value="exif">exif (путь к фото / URL)</option>
+            </select>
+            <input id="task-target" type="text"
+                   placeholder="email / домен / ник / IP / телефон / ФИО / @telegram / координаты / путь к фото">
+            <button id="task-add">Поставить задачу</button>
+        </div>
     </section>
 
-    <section>
-        <h2>Агенты</h2>
-        <div id="bots"></div>
-    </section>
+    <div class="grid">
+        <section class="panel col-bots">
+            <h2 class="panel-title">
+                Агенты <span class="counter" id="bots-count">0</span>
+            </h2>
+            <div id="bots"></div>
+        </section>
 
-    <section>
-        <h2>Задачи</h2>
-        <div id="tasks"></div>
-    </section>
+        <section class="panel col-tasks">
+            <h2 class="panel-title">
+                Задачи <span class="counter" id="tasks-count">0</span>
+            </h2>
+            <div id="tasks"></div>
+        </section>
+    </div>
 
-    <script type="module" src="/static/panel.js"></script>
+</main>
+
+<script type="module" src="/static/panel.js"></script>
 </body>
 </html>

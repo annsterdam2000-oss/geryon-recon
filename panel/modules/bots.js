@@ -15,7 +15,7 @@ export function renderBots(bots, botsEl, onRefresh) {
                     <b class="host"></b>
                     <code class="id"></code>
                     <span class="status"></span>
-                    <button class="rm">✕</button>
+                    <button class="rm" title="Удалить агента">✕</button>
                 </div>
                 <div class="info"></div>
                 <div class="modules"></div>
@@ -29,10 +29,10 @@ export function renderBots(bots, botsEl, onRefresh) {
         card.querySelector(".host").textContent = b.hostname;
         card.querySelector(".id").textContent = b.bot_id;
         card.querySelector(".status").textContent = b.status;
-        card.querySelector(".info").textContent = `${b.info.os} / ${b.info.user}`;
+        card.querySelector(".info").textContent = `${b.info.os} · ${b.info.user}`;
         card.querySelector(".modules").textContent =
-            "модули: " + (b.modules || []).join(", ") +
-            (b.current_task ? ` | занят: ${b.current_task}` : " | свободен");
+            "modules: " + (b.modules || []).join(", ") +
+            (b.current_task ? ` · busy: ${b.current_task}` : " · idle");
     });
     Object.keys(botCards).forEach(id => {
         if (!seen.has(id)) { botCards[id].remove(); delete botCards[id]; }

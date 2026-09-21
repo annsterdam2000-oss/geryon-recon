@@ -1,4 +1,5 @@
 # server/config.py
+# ☄ Zeus' thunder — timeouts, retries, the laws of the server.
 from pathlib import Path
 
 # Таймауты (в секундах)
