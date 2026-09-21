@@ -7,6 +7,7 @@ from .ip import module_ip
 from .phone import module_phone
 from .person import module_person
 from .telegram import module_telegram
+from .geo import module_geo
 
 
 MODULE_FUNCS = {
@@ -18,4 +19,5 @@ MODULE_FUNCS = {
     "phone": module_phone,
     "person": module_person,
     "telegram": module_telegram,
+    "geo": module_geo,
 }

@@ -18,6 +18,7 @@ MODULES = [
     "phone",
     "person",
     "telegram",
+    "geo",
 ]
 
 
