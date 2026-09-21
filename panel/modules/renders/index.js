@@ -6,6 +6,7 @@ import { renderUsernameResult } from "./username.js";
 import { renderIpResult } from "./ip.js";
 import { renderPhoneResult } from "./phone.js";
 import { renderPersonResult } from "./person.js";
+import { renderTelegramResult } from "./telegram.js";   // ← NEW
 import { escapeHtml } from "../utils.js";
 
 export function renderResult(type, r, subtasksFull) {
@@ -16,5 +17,6 @@ export function renderResult(type, r, subtasksFull) {
     if (type === "ip") return renderIpResult(r);
     if (type === "phone") return renderPhoneResult(r);
     if (type === "person") return renderPersonResult(r);
+    if (type === "telegram") return renderTelegramResult(r);   // ← NEW
     return `<pre>${escapeHtml(JSON.stringify(r, null, 2))}</pre>`;
 }

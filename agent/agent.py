@@ -9,7 +9,16 @@ from modules import MODULE_FUNCS
 
 SERVER = "http://127.0.0.1:5555"
 HEARTBEAT_INTERVAL = 2
-MODULES = ["email", "email_reg", "domain", "http_check", "ip", "phone", "person"]
+MODULES = [
+    "email",
+    "email_reg",
+    "domain",
+    "http_check",
+    "ip",
+    "phone",
+    "person",
+    "telegram",
+]
 
 
 def handle_task(client: ServerClient, task: dict):
