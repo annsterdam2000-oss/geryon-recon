@@ -1,10 +1,10 @@
 # OSINT Panel — зависимости
-# Python 3.12+
+# Python 3.10+
 
 # --- Core ---
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
-pydantic==2.10.4        # ← поставь свою версию
+pydantic==2.10.4
 python-dotenv==1.0.1
 
 # --- HTTP / OSINT ---
@@ -16,3 +16,6 @@ phonenumbers==8.13.47
 
 # --- Email registration check ---
 holehe==1.61
+
+# --- EXIF ---
+Pillow==12.3.0

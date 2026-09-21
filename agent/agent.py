@@ -19,6 +19,7 @@ MODULES = [
     "person",
     "telegram",
     "geo",
+    "exif",
 ]
 
 

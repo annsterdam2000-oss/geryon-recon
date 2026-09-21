@@ -8,6 +8,7 @@ from .phone import module_phone
 from .person import module_person
 from .telegram import module_telegram
 from .geo import module_geo
+from .exif import module_exif
 
 
 MODULE_FUNCS = {
@@ -20,4 +21,5 @@ MODULE_FUNCS = {
     "person": module_person,
     "telegram": module_telegram,
     "geo": module_geo,
+    "exif": module_exif,
 }

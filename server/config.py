@@ -18,6 +18,7 @@ SIMPLE_MODULES = [
     "person",
     "telegram",
     "geo",
+    "exif",
 ]
 
 # Путь к БД
