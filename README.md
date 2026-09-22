@@ -15,6 +15,24 @@
 
 Сервер раздаёт задачи агентам-воркерам, результаты собираются в веб-панели. Работает **локально**, внешние серверы не нужны. Каждый агент — **голова Гериона**: возьмёт задачу, выполнит, отдаст результат.
 
+## Страницы
+
+| URL | Что это |
+| --- | --- |
+| `/` | Главное меню |
+| `/panel` | Рабочая панель (задачи, агенты) |
+| `/about` | О проекте, команда, стек |
+
+## Скриншоты
+
+> _Скриншоты будут добавлены в папку `assets/` — пока заглушки._
+
+| Экран | Файл |
+| --- | --- |
+| Главное меню | `assets/menu.png` |
+| Панель задач | `assets/panel.png` |
+| О проекте | `assets/about.png` |
+
 ## Архитектура
 
 - **`server/`** — FastAPI-сервер, оркестратор задач
@@ -42,7 +60,7 @@
 - **Подзадачи** — `username` разворачивается в 35 http-проверок, `geo` — в Nominatim + Overpass
 - **Уведомления в Discord** — о завершённых задачах
 - **SQLite** — история задач и ботов сохраняется между запусками
-- **Веб-панель** — прогресс-бары, фильтры, красивый рендер каждого модуля
+- **Веб-панель** — прогресс-бары, фильтры, экспорт результатов, красивый рендер каждого модуля
 - **Отказоустойчивость** — задача вернётся в очередь, если агент упал
 - **Reconnect** — агент сам переподключается к серверу
 
@@ -62,12 +80,10 @@ python server.py
 ## Что должно быть в логе
 
 ```text
-[*] startup: init_db()
+[*] Geryon Recon — listening on http://0.0.0.0:5555
 [+] DB initialized: C:\projects\geryon-recon\server\osint.db
-[*] startup: load_from_db()
-[+] loaded 0 bots, 0 tasks from DB — Meepo is ready
-[*] startup: done
-INFO:     Uvicorn running on http://127.0.0.1:5555
+[+] loaded 0 bots, 0 tasks from DB
+INFO:     Uvicorn running on http://0.0.0.0:5555
 ```
 
 ## Запуск агентов
@@ -84,9 +100,9 @@ python agent.py --count N
 ## Что должно быть в логе агентов
 
 ```text
-[+] registered as a1b2c3d4 modules=['email', 'email_reg', 'domain', 'http_check', 'ip', 'phone', 'person', 'telegram', 'geo', 'exif']
-[+] registered as e5f6g7h8 modules=[...]
-[+] запущено 5 агентов
+[+] little meepo 1 registered modules=['email', 'email_reg', 'domain', ...]
+[+] little meepo 2 registered modules=[...]
+[+] запущено 3 агентов
 ```
 
 ## Как открыть панель
@@ -97,11 +113,21 @@ python agent.py --count N
 http://127.0.0.1:5555
 ```
 
+Ты попадёшь в **главное меню**. Оттуда — **«Начать работу»** → панель, **«О проекте»** → about.
+
+Прямые ссылки:
+
+```text
+http://127.0.0.1:5555/panel
+http://127.0.0.1:5555/about
+```
+
 ## Как пользоваться
 
 1. Выбери задачу из списка
 2. Введи цель
 3. Дождись результата в панели
+4. Экспорт результата — кнопка `↓` в карточке задачи (JSON)
 
 ## Примеры целей
 
@@ -117,6 +143,21 @@ http://127.0.0.1:5555
 | telegram | @durov |
 | geo | 55.7558,37.6173 |
 | exif | C:\photos\IMG_1234.jpg |
+
+## Доступ по локальной сети
+
+По умолчанию сервер слушает `0.0.0.0` — панель доступна с телефона/планшета в той же сети.
+
+Настройка — в `server/config.py`:
+
+```python
+HOST = "0.0.0.0"   # 127.0.0.1 — только локально
+PORT = 5555
+```
+
+Открыть с телефона: `http://<IP-компа>:5555` (IP узнать командой `ipconfig` в PowerShell).
+
+⚠️ **В общественных Wi-Fi** (кафе, школа) — ставь `HOST = "127.0.0.1"`.
 
 ## Уведомления в Discord (опционально)
 
@@ -149,6 +190,10 @@ geryon-recon/
 ├── LICENSE
 ├── .gitignore
 ├── requirements.txt
+├── assets/
+│   ├── menu.png
+│   ├── panel.png
+│   └── about.png
 ├── server/
 │   ├── server.py
 │   ├── config.py
@@ -178,6 +223,8 @@ geryon-recon/
 │       ├── geo.py
 │       └── exif.py
 └── panel/
+    ├── menu.html
+    ├── about.html
     ├── panel.html
     ├── panel.js
     ├── style.css
@@ -253,7 +300,7 @@ Get-Process python | Stop-Process -Force
 **Nominatim требует честный User-Agent** с контактом. В `geo.py` замени:
 
 ```python
-NOMINATIM_USER_AGENT = "geryon-recon/0.1 (твой_email@example.com)"
+NOMINATIM_USER_AGENT = "geryon-recon/1.0 (твой_email@example.com)"
 ```
 
 Без этого — могут забанить IP.
