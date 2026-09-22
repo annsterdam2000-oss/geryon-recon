@@ -50,9 +50,23 @@ async def ws_endpoint(ws: WebSocket):
         manager.disconnect(ws)
 
 
+def _read_html(filename: str) -> str:
+    return (PANEL_DIR / filename).read_text(encoding="utf-8")
+
+
 @app.get("/", response_class=HTMLResponse)
-async def index():
-    return (PANEL_DIR / "panel.html").read_text(encoding="utf-8")
+async def menu():
+    return _read_html("menu.html")
+
+
+@app.get("/panel", response_class=HTMLResponse)
+async def panel():
+    return _read_html("panel.html")
+
+
+@app.get("/about", response_class=HTMLResponse)
+async def about():
+    return _read_html("about.html")
 
 
 if __name__ == "__main__":
