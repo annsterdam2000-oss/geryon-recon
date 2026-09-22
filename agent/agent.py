@@ -55,7 +55,7 @@ def handle_task(client: ServerClient, task: dict):
     client.send_result(task_id, status, result, error)
 
 
-def agent_loop(name: str = "agent"):
+def agent_loop(fallback_name: str = "agent"):
     client = ServerClient(SERVER, MODULES)
     client.register()
 
@@ -65,7 +65,7 @@ def agent_loop(name: str = "agent"):
             if data.get("task"):
                 handle_task(client, data["task"])
         except Exception as e:
-            print(f"[{name}] [!] heartbeat failed: {e}")
+            print(f"[{fallback_name}] [!] heartbeat failed: {e}")
         time.sleep(HEARTBEAT_INTERVAL)
 
 
@@ -80,7 +80,11 @@ def main():
     else:
         threads = []
         for i in range(args.count):
-            t = threading.Thread(target=agent_loop, args=(f"agent{i+1}",), daemon=True)
+            t = threading.Thread(
+                target=agent_loop,
+                args=(f"agent{i+1}",),
+                daemon=True,
+            )
             t.start()
             threads.append(t)
             time.sleep(0.3)

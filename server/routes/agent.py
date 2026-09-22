@@ -5,7 +5,8 @@ import uuid
 from fastapi import APIRouter
 
 from models import RegisterReq, ResultReq
-from state import BOTS, TASKS, broadcast, bots_snapshot, tasks_snapshot
+from state import (BOTS, TASKS, broadcast, bots_snapshot, tasks_snapshot,
+                   next_meepo_num)
 from logic import recompute_parents
 from notify import notify_task_done
 import db
@@ -17,7 +18,12 @@ router = APIRouter()
 @router.post("/register")
 async def register(req: RegisterReq):
     bot_id = str(uuid.uuid4())[:8]
+    meepo_num = next_meepo_num()
+    agent_name = f"Meepo {meepo_num}"
+
     bot = {
+        "agent_name": agent_name,
+        "meepo_num": meepo_num,
         "hostname": req.hostname,
         "info": {"os": req.os, "user": req.user},
         "modules": req.modules or ["email"],
@@ -29,9 +35,9 @@ async def register(req: RegisterReq):
     bot["bot_id"] = bot_id
     db.save_bot(bot)
 
-    print(f"[+] bot {bot_id} registered: {req.hostname} modules={req.modules}")
+    print(f"[+] {agent_name} registered (id: {bot_id}) modules={req.modules}")
     await broadcast({"type": "bots", "bots": bots_snapshot()})
-    return {"bot_id": bot_id}
+    return {"bot_id": bot_id, "agent_name": agent_name, "meepo_num": meepo_num}
 
 
 @router.post("/heartbeat/{bot_id}")

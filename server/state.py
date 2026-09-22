@@ -19,10 +19,20 @@ def is_parent(task: dict) -> bool:
     return "subtasks" in task
 
 
+def next_meepo_num() -> int:
+    """Следующий номер Meepo. Учитывает и живых ботов в BOTS, и историю в БД."""
+    in_memory = [b.get("meepo_num", 0) for b in BOTS.values()]
+    in_db = db.max_meepo_num()
+    current_max = max(in_memory + [in_db, 0])
+    return current_max + 1
+
+
 def bots_snapshot() -> List[dict]:
     return [
         {
             "bot_id": bid,
+            "agent_name": b.get("agent_name", bid),
+            "meepo_num": b.get("meepo_num"),
             "hostname": b["hostname"],
             "info": b["info"],
             "modules": b["modules"],
@@ -55,6 +65,8 @@ def load_from_db():
     # Загружаем ботов
     for b in db.load_all_bots():
         BOTS[b["bot_id"]] = {
+            "agent_name": b.get("agent_name") or b["bot_id"],
+            "meepo_num": b.get("meepo_num"),
             "hostname": b["hostname"],
             "info": b["info"],
             "modules": b["modules"],
@@ -69,7 +81,6 @@ def load_from_db():
         TASKS[t["task_id"]] = t
 
     # Восстанавливаем связь родитель ↔ подзадачи
-    # (в БД хранится parent_id, но нет поля subtasks — пересобираем)
     for tid, t in TASKS.items():
         pid = t.get("parent_id")
         if pid and pid in TASKS:

@@ -1,0 +1,11 @@
+[1mdiff --git a/server/logic.py b/server/logic.py[m
+[1mindex 00d3aaf..a0009fc 100644[m
+[1m--- a/server/logic.py[m
+[1m+++ b/server/logic.py[m
+[36m@@ -216,4 +216,4 @@[m [mdef create_simple_task(task_type: str, target: str):[m
+     }[m
+     TASKS[task_id] = t[m
+     _save(t)[m
+[31m-    return task_id[m
+\ No newline at end of file[m
+[32m+[m[32m    return task_id[m

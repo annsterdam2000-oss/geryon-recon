@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 
 import db
+from config import HOST, PORT
 from routes.agent import router as agent_router
 from routes.panel import router as panel_router
 from state import manager, bots_snapshot, tasks_snapshot, load_from_db
@@ -55,4 +56,8 @@ async def index():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=5555)
+    print(f"[*] Geryon Recon — listening on http://{HOST}:{PORT}")
+    if HOST == "0.0.0.0":
+        print("[!] WARNING: сервер открыт в локальной сети. "
+              "Не используй в общественных Wi-Fi.")
+    uvicorn.run(app, host=HOST, port=PORT)

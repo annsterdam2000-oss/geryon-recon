@@ -26,7 +26,14 @@
 <main class="container">
 
     <section class="panel new-task-panel">
-        <h2 class="panel-title">Новая задача</h2>
+        <h2 class="panel-title">
+            <svg class="pt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"/>
+                <line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            Новая задача
+        </h2>
         <div class="new-task">
             <select id="task-type">
                 <option value="email">email</option>
@@ -49,6 +56,12 @@
     <div class="grid">
         <section class="panel col-bots">
             <h2 class="panel-title">
+                <svg class="pt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9"/>
+                    <ellipse cx="12" cy="12" rx="9" ry="3.6"/>
+                    <ellipse cx="12" cy="12" rx="3.6" ry="9"/>
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                </svg>
                 Агенты <span class="counter" id="bots-count">0</span>
             </h2>
             <div id="bots"></div>
@@ -56,8 +69,23 @@
 
         <section class="panel col-tasks">
             <h2 class="panel-title">
+                <svg class="pt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="5" y="4" width="14" height="16" rx="2"/>
+                    <line x1="9" y1="9" x2="15" y2="9"/>
+                    <line x1="9" y1="13" x2="15" y2="13"/>
+                    <line x1="9" y1="17" x2="13" y2="17"/>
+                </svg>
                 Задачи <span class="counter" id="tasks-count">0</span>
             </h2>
+
+            <div class="task-filter" id="task-filter">
+                <button class="tf-btn active" data-filter="all">Все</button>
+                <button class="tf-btn" data-filter="pending">Pending</button>
+                <button class="tf-btn" data-filter="running">Running</button>
+                <button class="tf-btn" data-filter="done">Done</button>
+                <button class="tf-btn" data-filter="failed">Failed</button>
+            </div>
+
             <div id="tasks"></div>
         </section>
     </div>

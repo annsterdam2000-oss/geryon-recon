@@ -10,6 +10,12 @@ class RegisterReq(BaseModel):
     modules: List[str] = []
 
 
+class RegisterResp(BaseModel):
+    bot_id: str
+    agent_name: str
+    meepo_num: int
+
+
 class TaskReq(BaseModel):
     task_type: str
     target: str

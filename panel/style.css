@@ -713,3 +713,641 @@ table.us-table code {
    ☄ Quas. Wex. Exort. Server. Agent. Panel.
    Три сферы — три тела — один разум.
    ============================================================ */
+   /* ============================================================
+   ☄ Пакет A: заглушки, пилюли, пульс, disabled
+   ============================================================ */
+
+/* --- Заглушки пустых состояний --- */
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-mute);
+    border: 1px dashed var(--border);
+    border-radius: var(--r);
+    background: var(--bg-inset);
+    opacity: 0.7;
+}
+
+.empty-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+    filter: grayscale(0.4);
+    opacity: 0.8;
+}
+
+.empty-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+}
+
+.empty-sub {
+    font-size: 12px;
+    color: var(--text-mute);
+    font-family: var(--font-mono);
+}
+
+.empty-sub code {
+    background: var(--bg);
+    color: var(--gold);
+    border: 1px solid var(--border-soft);
+    padding: 1px 6px;
+    border-radius: var(--r-sm);
+    font-size: 11px;
+}
+
+/* --- Модули пилюлями --- */
+.bot .modules {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+}
+
+.mod {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 4px;
+    background: rgba(200, 170, 110, 0.08);
+    border: 1px solid rgba(200, 170, 110, 0.22);
+    color: var(--gold);
+    font-size: 10px;
+    letter-spacing: 0.02em;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.mod:hover {
+    background: rgba(200, 170, 110, 0.15);
+    border-color: rgba(200, 170, 110, 0.4);
+}
+
+.mod.busy {
+    background: rgba(107, 142, 201, 0.12);
+    border-color: rgba(107, 142, 201, 0.35);
+    color: var(--info);
+}
+
+.mod.idle {
+    background: rgba(90, 98, 112, 0.1);
+    border-color: rgba(90, 98, 112, 0.25);
+    color: var(--text-mute);
+}
+
+/* --- Статус с точкой-пульсом --- */
+.row .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sdot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 6px currentColor;
+    flex-shrink: 0;
+}
+
+.bot.online .sdot { animation: sdot-pulse 1.8s ease-in-out infinite; }
+
+@keyframes sdot-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* --- Кнопка disabled --- */
+.new-task button.is-disabled,
+.new-task button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    filter: grayscale(0.3);
+    box-shadow: none;
+}
+
+.new-task button.is-disabled:hover,
+.new-task button:disabled:hover {
+    filter: grayscale(0.3);
+    transform: none;
+}
+
+/* --- Hover на полях формы (мягче) --- */
+.new-task select:hover,
+.new-task input:hover {
+    border-color: #3a4250;
+}
+
+.new-task select:focus:hover,
+.new-task input:focus:hover {
+    border-color: var(--gold);
+}
+
+/* --- Hover на карточке — чуть заметнее --- */
+.bot:hover,
+.task:hover {
+    background: #181d26;
+    border-color: #2a323d;
+}
+/* ============================================================
+   ☄ Пакет B: структура карточек, иерархия, анимация
+   ============================================================ */
+
+/* --- Шапка карточки агента --- */
+.bot-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.bot-head .host {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--gold-bright);
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 12px rgba(200, 170, 110, 0.15);
+}
+
+.bot-head .status {
+    margin-left: auto;
+}
+
+/* --- Инфо-строка агента — приглушённее --- */
+.bot .info {
+    font-size: 11px;
+    color: var(--text-mute);
+    letter-spacing: 0.01em;
+    margin-top: 4px;
+    opacity: 0.85;
+}
+
+/* --- Шапка карточки задачи --- */
+.task-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.task-title {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.task-title .type {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--gold-bright);
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+}
+
+.task-title .target {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1;
+}
+
+.task-side {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.task-side .timer {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-mute);
+}
+
+.task-side .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--bg-inset);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+}
+
+.task-side .rm {
+    background: transparent;
+    color: var(--text-mute);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    padding: 3px 8px;
+    font-size: 12px;
+    transition: all .15s;
+}
+
+.task-side .rm:hover {
+    color: var(--dire);
+    border-color: #c23c2a55;
+    background: #c23c2a11;
+}
+
+/* --- Анимация появления карточки --- */
+@keyframes card-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+}
+
+.bot, .task {
+    animation: card-in 0.22s ease both;
+}
+
+/* --- Disabled кнопка — точно серая, без сюрпризов --- */
+.new-task button:disabled,
+.new-task button.is-disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: grayscale(0.5);
+    box-shadow: none;
+    transform: none;
+    pointer-events: none;
+}
+/* ============================================================
+   ☄ Пакет B.1: кнопка удаления агента (крестик)
+   ============================================================ */
+
+.bot-head .rm {
+    margin-left: 4px;
+    background: transparent;
+    color: var(--text-mute);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-family: var(--font-ui);
+    line-height: 1;
+    transition: color .15s, border-color .15s, background .15s;
+}
+
+.bot-head .rm:hover {
+    color: var(--dire);
+    border-color: #c23c2a55;
+    background: #c23c2a11;
+}
+/* ============================================================
+   ☄ Пакет C: иконки, топбар, ховеры, мобилка, полировка
+   ============================================================ */
+
+/* --- Иконки в заголовках панелей --- */
+.panel-title {
+    align-items: center;
+}
+
+.panel-title .pt-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--gold);
+    flex-shrink: 0;
+    opacity: 0.9;
+    filter: drop-shadow(0 0 6px rgba(200, 170, 110, 0.2));
+    transition: color 0.2s, filter 0.2s;
+}
+
+.panel:hover .pt-icon {
+    color: var(--gold-bright);
+    filter: drop-shadow(0 0 10px rgba(200, 170, 110, 0.35));
+}
+
+/* --- Топбар: золотая линия, мягкая тень --- */
+.topbar {
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 0 rgba(200, 170, 110, 0.06),
+                0 8px 24px rgba(0, 0, 0, 0.35);
+    position: relative;
+}
+
+.topbar::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(200, 170, 110, 0.25) 20%,
+        rgba(200, 170, 110, 0.45) 50%,
+        rgba(200, 170, 110, 0.25) 80%,
+        transparent 100%
+    );
+    pointer-events: none;
+}
+
+/* --- Hover на панели: очень деликатный --- */
+.panel {
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.panel:hover {
+    border-color: #2a323d;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+/* --- Полировка: единые радиусы и мелочи --- */
+.panel-title {
+    user-select: none;
+}
+
+.panel-title .counter {
+    margin-left: 2px;
+}
+
+/* --- Мобилка: сетка в одну колонку и компактнее --- */
+@media (max-width: 720px) {
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+    .container {
+        padding: 12px 12px 40px;
+    }
+    .panel {
+        padding: 16px;
+        border-radius: var(--r);
+    }
+    .panel-title {
+        font-size: 13px;
+    }
+
+    .new-task {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .new-task select,
+    .new-task input,
+    .new-task button {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .bot-head,
+    .task-head {
+        flex-wrap: wrap;
+    }
+    .task-side {
+        margin-left: auto;
+    }
+    .task-title {
+        flex-basis: 100%;
+    }
+}
+
+/* --- Мобилка: топбар компактнее --- */
+@media (max-width: 480px) {
+    .topbar {
+        padding: 10px 14px;
+    }
+    .brand {
+        font-size: 16px;
+        gap: 8px;
+    }
+    .brand-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+    }
+    .topbar-meta {
+        font-size: 11px;
+    }
+    #server-status {
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+/* ============================================================
+   ☄ Пакет D: сфера в модулях, цветовые группы, блик, анимация
+   ============================================================ */
+
+/* --- Сфера внутри пилюль модулей --- */
+.mod {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px 2px 6px;
+}
+
+.mod .mod-icon {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+    opacity: 0.75;
+}
+
+/* --- Цветовые группы модулей --- */
+.mod-net {
+    background: rgba(107, 142, 201, 0.10);
+    border-color: rgba(107, 142, 201, 0.30);
+    color: var(--arc-warden);
+}
+.mod-net:hover {
+    background: rgba(107, 142, 201, 0.18);
+    border-color: rgba(107, 142, 201, 0.45);
+}
+
+.mod-mail {
+    background: rgba(200, 170, 110, 0.08);
+    border-color: rgba(200, 170, 110, 0.22);
+    color: var(--gold);
+}
+.mod-mail:hover {
+    background: rgba(200, 170, 110, 0.15);
+    border-color: rgba(200, 170, 110, 0.40);
+}
+
+.mod-id {
+    background: rgba(74, 158, 92, 0.10);
+    border-color: rgba(74, 158, 92, 0.28);
+    color: var(--radiant);
+}
+.mod-id:hover {
+    background: rgba(74, 158, 92, 0.18);
+    border-color: rgba(74, 158, 92, 0.45);
+}
+
+.mod-meta {
+    background: rgba(212, 168, 75, 0.10);
+    border-color: rgba(212, 168, 75, 0.28);
+    color: var(--mars-arena);
+}
+.mod-meta:hover {
+    background: rgba(212, 168, 75, 0.18);
+    border-color: rgba(212, 168, 75, 0.45);
+}
+
+.mod-tech {
+    background: rgba(90, 98, 112, 0.10);
+    border-color: rgba(90, 98, 112, 0.25);
+    color: var(--text-mute);
+}
+
+/* busy / idle — как было, но с уточнениями */
+.mod-busy {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(107, 142, 201, 0.12);
+    border-color: rgba(107, 142, 201, 0.35);
+    color: var(--info);
+}
+
+.mod-idle {
+    background: rgba(90, 98, 112, 0.10);
+    border-color: rgba(90, 98, 112, 0.25);
+    color: var(--text-mute);
+}
+
+/* --- Сфера в заглушке (крупнее) --- */
+.empty .empty-icon {
+    font-size: unset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.empty .empty-sphere {
+    width: 36px;
+    height: 36px;
+    color: var(--gold);
+    opacity: 0.55;
+    filter: drop-shadow(0 0 10px rgba(200, 170, 110, 0.20));
+    animation: sphere-spin 24s linear infinite;
+}
+
+@keyframes sphere-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+/* --- Блик по прогресс-бару, если задача running --- */
+.pbar.is-running .pfill {
+    position: relative;
+    overflow: hidden;
+}
+
+.pbar.is-running .pfill::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -40%;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.35),
+        transparent
+    );
+    animation: pbar-shine 1.6s linear infinite;
+}
+
+@keyframes pbar-shine {
+    from { left: -40%; }
+    to   { left: 100%; }
+}
+
+/* --- Плавное появление задачи сверху (чуть заметнее) --- */
+@keyframes task-in {
+    from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+    to   { opacity: 1; transform: none; }
+}
+
+.task {
+    animation: task-in 0.22s ease both;
+}
+/* ============================================================
+   ☄ Пакет E: фильтр, экспорт, плавный прогресс
+   ============================================================ */
+
+/* --- Фильтр задач --- */
+.task-filter {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.tf-btn {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--bg-inset);
+    color: var(--text-mute);
+    border: 1px solid var(--border-soft);
+    cursor: pointer;
+    transition: color .15s, border-color .15s, background .15s;
+}
+
+.tf-btn:hover {
+    color: var(--text);
+    border-color: var(--border);
+}
+
+.tf-btn.active {
+    color: var(--gold-bright);
+    border-color: var(--border-gold);
+    background: rgba(200, 170, 110, 0.08);
+}
+
+/* --- Кнопка экспорта --- */
+.task-side .exp {
+    background: transparent;
+    color: var(--text-mute);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    line-height: 1;
+    transition: color .15s, border-color .15s, background .15s;
+}
+
+.task-side .exp:hover {
+    color: var(--gold);
+    border-color: var(--border-gold);
+    background: rgba(200, 170, 110, 0.08);
+}
+
+/* --- Убедимся, что прогресс-бар точно анимируется --- */
+.pfill {
+    transition: width 0.5s cubic-bezier(0.25, 0.8, 0.35, 1);
+    will-change: width;
+}

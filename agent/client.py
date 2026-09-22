@@ -12,6 +12,8 @@ class ServerClient:
         self.server = server_url
         self.modules = modules
         self.bot_id = None
+        self.agent_name = None
+        self.meepo_num = None
 
     def get_info(self):
         return {
@@ -27,8 +29,12 @@ class ServerClient:
             try:
                 r = requests.post(f"{self.server}/register", json=info, timeout=10)
                 r.raise_for_status()
-                self.bot_id = r.json()["bot_id"]
-                print(f"[+] registered as {self.bot_id} modules={self.modules}")
+                data = r.json()
+                self.bot_id = data["bot_id"]
+                self.agent_name = data.get("agent_name", self.bot_id)
+                self.meepo_num = data.get("meepo_num")
+                print(f"[+] little {self.agent_name.lower()} registered "
+                      f"modules={self.modules}")
                 return self.bot_id
             except Exception as e:
                 print(f"[!] register failed: {e}, retry in 3s")
