@@ -226,7 +226,10 @@ geryon-recon/
     ├── menu.html
     ├── about.html
     ├── panel.html
+    ├── menu.js
     ├── panel.js
+    ├── panel-fade.js
+    ├── about-fade.js
     ├── style.css
     └── modules/
         ├── bots.js

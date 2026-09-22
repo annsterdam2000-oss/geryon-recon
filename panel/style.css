@@ -1449,3 +1449,47 @@ table.us-table code {
     .about-title { font-size: 22px; }
     .about-header { gap: 10px; margin-bottom: 28px; }
 }
+/* ============================================================
+   ☄ Пакет H: переходы между экранами, пульс сферы
+   ============================================================ */
+
+/* --- Оверлей перехода --- */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 999;
+    transition: opacity .25s ease;
+}
+
+body.leaving::after {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* --- Пульс сферы в меню (мягкое дыхание) --- */
+@keyframes sphere-breathe {
+    0%, 100% {
+        filter: drop-shadow(0 0 24px rgba(200, 170, 110, 0.25));
+        opacity: 0.75;
+    }
+    50% {
+        filter: drop-shadow(0 0 40px rgba(200, 170, 110, 0.45));
+        opacity: 0.95;
+    }
+}
+
+.menu-sphere {
+    animation:
+        menu-sphere-spin 36s linear infinite,
+        sphere-breathe 5s ease-in-out infinite;
+}
+
+/* --- Ссылки-переходы: курсор-указатель --- */
+a[href^="/"],
+a[href^="http"] {
+    cursor: pointer;
+}
