@@ -16,12 +16,57 @@
 
     <div class="menu-hero">
         <div class="menu-sphere">
-            <svg viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" aria-hidden="true">
-                <circle cx="60" cy="60" r="48"/>
-                <ellipse cx="60" cy="60" rx="48" ry="20"/>
-                <ellipse cx="60" cy="60" rx="20" ry="48"/>
-                <line x1="12" y1="60" x2="108" y2="60"/>
-                <line x1="60" y1="12" x2="60" y2="108"/>
+            <svg viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" aria-hidden="true">
+                <ellipse cx="100" cy="100" rx="94" ry="30" transform="rotate(-18 100 100)" stroke-width="1" opacity="0.55"/>
+                <circle cx="100" cy="100" r="72" stroke-width="1.4" opacity="0.9"/>
+                <ellipse cx="100" cy="100" rx="12" ry="72" opacity="0.45"/>
+                <ellipse cx="100" cy="100" rx="26" ry="72" opacity="0.5"/>
+                <ellipse cx="100" cy="100" rx="40" ry="72" opacity="0.5"/>
+                <ellipse cx="100" cy="100" rx="54" ry="72" opacity="0.5"/>
+                <ellipse cx="100" cy="100" rx="66" ry="72" opacity="0.45"/>
+                <line x1="28" y1="100" x2="172" y2="100" opacity="0.6"/>
+                <ellipse cx="100" cy="72"  rx="68" ry="10" opacity="0.45"/>
+                <ellipse cx="100" cy="128" rx="68" ry="10" opacity="0.45"/>
+                <ellipse cx="100" cy="46"  rx="50" ry="8"  opacity="0.4"/>
+                <ellipse cx="100" cy="154" rx="50" ry="8"  opacity="0.4"/>
+                <ellipse cx="100" cy="24"  rx="28" ry="5"  opacity="0.35"/>
+                <ellipse cx="100" cy="176" rx="28" ry="5"  opacity="0.35"/>
+                <circle cx="100" cy="28"  r="1.6" fill="currentColor" stroke="none"/>
+                <circle cx="100" cy="46"  r="1.6" fill="currentColor" stroke="none"/>
+                <circle cx="100" cy="72"  r="1.6" fill="currentColor" stroke="none"/>
+                <circle cx="100" cy="128" r="1.6" fill="currentColor" stroke="none"/>
+                <circle cx="100" cy="154" r="1.6" fill="currentColor" stroke="none"/>
+                <circle cx="100" cy="172" r="1.6" fill="currentColor" stroke="none"/>
+                <circle cx="28"  cy="100" r="1.6" fill="currentColor" stroke="none"/>
+                <circle cx="172" cy="100" r="1.6" fill="currentColor" stroke="none"/>
+                <circle cx="46"  cy="60"  r="1.4" fill="currentColor" stroke="none" opacity="0.8"/>
+                <circle cx="154" cy="60"  r="1.4" fill="currentColor" stroke="none" opacity="0.8"/>
+                <circle cx="46"  cy="140" r="1.4" fill="currentColor" stroke="none" opacity="0.8"/>
+                <circle cx="154" cy="140" r="1.4" fill="currentColor" stroke="none" opacity="0.8"/>
+                <circle cx="100" cy="100" r="4" fill="currentColor" stroke="none" opacity="0.9">
+                    <animate attributeName="r" values="3.5;5;3.5" dur="3s" repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite"/>
+                </circle>
+                <circle r="2.5" fill="currentColor" stroke="none" opacity="0.95">
+                    <animateMotion dur="8s" repeatCount="indefinite"
+                        path="M 8,100 A 92,30 0 1,1 192,100 A 92,30 0 1,1 8,100"
+                        rotate="auto"/>
+                </circle>
+                <circle r="2" fill="currentColor" stroke="none" opacity="0.7">
+                    <animateMotion dur="8s" begin="4s" repeatCount="indefinite"
+                        path="M 8,100 A 92,30 0 1,1 192,100 A 92,30 0 1,1 8,100"
+                        rotate="auto"/>
+                </circle>
+
+                <!-- ============ КРОВЬ: струйка + три капли ============ -->
+                <g class="sphere-blood" aria-hidden="true">
+                    <path class="stream"
+                          d="M 98 172 L 102 172 L 101 178 L 99 178 Z"
+                          fill="#c23c2a" opacity="0"/>
+                    <circle class="drop drop-1" cx="100" cy="178" r="2.5" fill="#c23c2a" opacity="0"/>
+                    <circle class="drop drop-2" cx="100" cy="178" r="2.2" fill="#c23c2a" opacity="0"/>
+                    <circle class="drop drop-3" cx="100" cy="178" r="2.7" fill="#c23c2a" opacity="0"/>
+                </g>
             </svg>
         </div>
 
@@ -48,6 +93,31 @@
     </footer>
 
 </main>
+
+<!-- ============ ПАСХАЛКА: NOSIGNAL + ГЛАЗ ============ -->
+<div id="nosignal-overlay" class="nosignal-overlay" aria-hidden="true">
+    <div class="nosignal-content">
+        <div class="nosignal-text">
+            NOSIGNAL<span class="nosignal-cursor">_</span>
+        </div>
+        <div class="nosignal-sub">// PLEASE RELOAD</div>
+    </div>
+
+    <div class="nosignal-eye" aria-hidden="true">
+        <svg viewBox="0 0 240 120" fill="none" aria-hidden="true">
+            <path d="M 20 60 Q 120 -10 220 60 Q 120 130 20 60 Z"
+                  stroke="#c23c2a" stroke-width="2" fill="none" opacity="0.85"/>
+            <circle cx="120" cy="60" r="26" fill="#c23c2a" opacity="0.15"/>
+            <circle cx="120" cy="60" r="26" stroke="#c23c2a" stroke-width="1.5" fill="none"/>
+            <circle cx="120" cy="60" r="10" fill="#c23c2a" opacity="0.95">
+                <animate attributeName="r" values="10;11.5;10" dur="1.6s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="115" cy="55" r="2.5" fill="#ff8a7a" opacity="0.9"/>
+            <path d="M 55 40 L 60 52 M 85 25 L 88 40 M 120 20 L 120 36 M 155 25 L 152 40 M 185 40 L 180 52"
+                  stroke="#c23c2a" stroke-width="1.5" opacity="0.6"/>
+        </svg>
+    </div>
+</div>
 
 <script src="/static/menu.js"></script>
 </body>

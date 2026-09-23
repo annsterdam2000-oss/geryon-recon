@@ -1493,3 +1493,303 @@ a[href^="/"],
 a[href^="http"] {
     cursor: pointer;
 }
+/* ============================================================
+   ☄ Пакет I: сфера-сетка GTA Online "Судный день"
+   Стоит на месте. Движение — только импульсы внутри.
+   ============================================================ */
+
+.menu-sphere {
+    width: 180px;
+    height: 180px;
+    color: var(--gold);
+    opacity: 0.85;
+    filter:
+        drop-shadow(0 0 24px rgba(200, 170, 110, 0.25))
+        drop-shadow(0 0 60px rgba(200, 170, 110, 0.10));
+    animation: sphere-breathe 5s ease-in-out infinite;
+    margin-bottom: 28px;
+    will-change: filter, opacity;
+}
+
+.menu-sphere svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+@media (max-width: 640px) {
+    .menu-sphere {
+        width: 130px;
+        height: 130px;
+        margin-bottom: 20px;
+    }
+}
+
+/* ============================================================
+   ☄ Пакет J: пасхалка NOSIGNAL
+   Через 2 минуты бездействия — чёрный экран + глаз.
+   ============================================================ */
+
+.nosignal-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .12s ease, visibility .12s ease;
+}
+
+.nosignal-overlay.is-active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.nosignal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    text-align: center;
+}
+
+.nosignal-text {
+    font-family: var(--font-mono);
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: #e6e8eb;
+    text-shadow: 0 0 18px rgba(230, 232, 235, 0.35);
+    animation: nosignal-flicker 0.12s steps(2) infinite;
+}
+
+@media (max-width: 640px) {
+    .nosignal-text { font-size: 28px; letter-spacing: 0.12em; }
+    .nosignal-sub  { font-size: 11px; }
+}
+
+.nosignal-cursor {
+    display: inline-block;
+    margin-left: 4px;
+    animation: nosignal-blink 0.7s steps(1) infinite;
+}
+
+.nosignal-sub {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    color: #8b93a1;
+    opacity: 0.75;
+}
+
+@keyframes nosignal-blink {
+    0%, 49%   { opacity: 1; }
+    50%, 100% { opacity: 0; }
+}
+
+@keyframes nosignal-flicker {
+    0%   { opacity: 1;   }
+    50%  { opacity: 0.92;}
+    100% { opacity: 1;   }
+}
+
+.nosignal-eye {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+    filter:
+        drop-shadow(0 0 30px rgba(194, 60, 42, 0.7))
+        drop-shadow(0 0 80px rgba(194, 60, 42, 0.35));
+}
+
+.nosignal-overlay.is-active .nosignal-eye {
+    animation: nosignal-eye-in 1.2s ease 3.8s forwards;
+}
+
+.nosignal-eye svg {
+    width: 60%;
+    max-width: 520px;
+    height: auto;
+}
+
+@keyframes nosignal-eye-in {
+    0%   { opacity: 0;   transform: scale(0.94); }
+    60%  { opacity: 1;   transform: scale(1.02); }
+    100% { opacity: 1;   transform: scale(1); }
+}
+
+.nosignal-overlay.is-active .nosignal-content {
+    animation: nosignal-content-out 0.5s ease 3.5s forwards;
+}
+
+@keyframes nosignal-content-out {
+    0%   { opacity: 1; filter: blur(0); }
+    100% { opacity: 0; filter: blur(4px); visibility: hidden; }
+}
+
+/* ============================================================
+   ☄ Пакет K: капли крови из-под сферы (после NOSIGNAL)
+   Капля висит → падает → шлёпается → подсыхает.
+   ============================================================ */
+
+.sphere-blood .drop {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center bottom;
+}
+
+.sphere-blood .stream {
+    opacity: 0;
+    transition: opacity .3s ease;
+}
+
+body.is-bleeding .sphere-blood .stream {
+    opacity: 0.7;
+}
+
+body.is-bleeding .sphere-blood .drop-1 {
+    animation: blood-drop 2.2s cubic-bezier(.5,0,.9,1) 0s 1 forwards;
+}
+body.is-bleeding .sphere-blood .drop-2 {
+    animation: blood-drop 2.2s cubic-bezier(.5,0,.9,1) 2.2s 1 forwards;
+}
+body.is-bleeding .sphere-blood .drop-3 {
+    animation: blood-drop 2.2s cubic-bezier(.5,0,.9,1) 4.4s 1 forwards;
+}
+
+@keyframes blood-drop {
+    0% {
+        opacity: 0;
+        transform: translateY(0) scale(0.4, 0.6);
+    }
+    12% {
+        opacity: 1;
+        transform: translateY(0) scale(1, 1.15);
+    }
+    45% {
+        opacity: 1;
+        transform: translateY(14px) scale(0.9, 1.5);
+    }
+    58% {
+        opacity: 1;
+        transform: translateY(30px) scale(1, 1.2);
+    }
+    66% {
+        opacity: 1;
+        transform: translateY(30px) scale(2.4, 0.35);
+    }
+    78% {
+        opacity: 0.85;
+        transform: translateY(30px) scale(2.8, 0.25);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(30px) scale(3.2, 0.1);
+    }
+}
+/* ============================================================
+   ☄ Пакет L: дота-тултипы на модулях
+   Кастомные подсказки в стиле проекта.
+   ============================================================ */
+
+.mod {
+    position: relative;
+}
+
+.mod[data-tooltip]::after {
+    content: attr(data-tooltip);
+
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+
+    background: var(--bg-panel);
+    color: var(--gold-bright);
+    border: 1px solid var(--border-gold);
+    border-radius: var(--r-sm);
+    padding: 6px 10px;
+
+    font-family: var(--font-ui);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
+
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+
+    box-shadow:
+        0 6px 20px rgba(0, 0, 0, 0.55),
+        0 0 20px rgba(200, 170, 110, 0.12);
+
+    transition: opacity .18s ease .35s, transform .18s ease .35s;
+    z-index: 50;
+}
+
+/* Стрелочка вниз */
+.mod[data-tooltip]::before {
+    content: "";
+
+    position: absolute;
+    bottom: calc(100% + 3px);
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+
+    width: 6px;
+    height: 6px;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border-gold);
+    border-bottom: 1px solid var(--border-gold);
+
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .18s ease .35s;
+    z-index: 51;
+}
+
+.mod[data-tooltip]:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.mod[data-tooltip]:hover::before {
+    opacity: 1;
+}
+
+/* На тач-устройствах тултипы не нужны */
+@media (hover: none) {
+    .mod[data-tooltip]::after,
+    .mod[data-tooltip]::before {
+        display: none;
+    }
+}
+/* ============================================================
+   ☄ Фикс мигания карточек
+   Анимация card-in должна играть ОДИН РАЗ при появлении,
+   а не при каждом обновлении класса.
+   ============================================================ */
+
+.task,
+.bot {
+    animation-iteration-count: 1;
+    animation-fill-mode: both;
+}
+
+/* Если карточка уже отрисована — не перезапускать анимацию */
+.task.is-ready,
+.bot.is-ready {
+    animation: none;
+}

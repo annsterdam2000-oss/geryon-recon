@@ -15,4 +15,4 @@ console.log(
 // --- init ---
 initTaskControls();
 refresh();
-setInterval(refresh, 1000);
+setInterval(refresh, 3000);

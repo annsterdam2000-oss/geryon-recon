@@ -16,6 +16,24 @@ const MODULE_GROUPS = {
     "http_check": "tech",
 };
 
+// ============================================================
+// ☄ Дота-лор для модулей — тултипы на пилюлях
+// ============================================================
+
+const MODULE_LORE = {
+    "email":     "Invoker: три сферы — один адрес",
+    "email_reg": "Silencer: тихая проверка регистраций",
+    "domain":    "Exort: каркас мира — WHOIS, DNS, SSL",
+    "username":  "Meepo: 35 копий — одна цель",
+    "ip":        "Arc Warden: я и мой цифровой клон",
+    "phone":     "Tinker: перехват сигнала",
+    "person":    "Chen: собирает под рукой",
+    "telegram":  "Wex: молния связи",
+    "geo":       "Mars: арена координат, 100 метров",
+    "exif":      "Rubick: что украл — то моё",
+    "http_check":"Bounty Hunter: ищет по следу",
+};
+
 const SPHERE_SVG = `
 <svg class="mod-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" aria-hidden="true">
     <circle cx="8" cy="8" r="6.2"/>
@@ -36,6 +54,14 @@ const BOLT_SVG = `
 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M9 1.5 L3.5 9 H7.5 L6.5 14.5 L13 6.5 H8.5 Z"/>
 </svg>`;
+
+function escapeHtml(s) {
+    return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
 
 export function renderBots(bots, botsEl, onRefresh) {
     if (!bots.length) {
@@ -96,12 +122,14 @@ export function renderBots(bots, botsEl, onRefresh) {
         const mods = b.modules || [];
         let html = mods.map(m => {
             const group = MODULE_GROUPS[m] || "tech";
-            return `<span class="mod mod-${group}">${SPHERE_SVG}${m}</span>`;
+            const lore  = MODULE_LORE[m];
+            const tip   = lore ? ` data-tooltip="${escapeHtml(lore)}"` : "";
+            return `<span class="mod mod-${group}"${tip}>${SPHERE_SVG}${m}</span>`;
         }).join("");
         if (b.current_task) {
-            html += `<span class="mod mod-busy">${SPHERE_SVG}busy: ${b.current_task}</span>`;
+            html += `<span class="mod mod-busy" data-tooltip="Выполняет задачу">${SPHERE_SVG}busy: ${escapeHtml(b.current_task)}</span>`;
         } else {
-            html += `<span class="mod mod-idle">idle</span>`;
+            html += `<span class="mod mod-idle" data-tooltip="Готов к работе">idle</span>`;
         }
         modEl.innerHTML = html;
     });
