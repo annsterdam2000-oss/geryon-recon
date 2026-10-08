@@ -21,8 +21,8 @@ def is_parent(task: dict) -> bool:
 
 def next_meepo_num() -> int:
     """Следующий номер Meepo. Учитывает и живых ботов в BOTS, и историю в БД."""
-    in_memory = [b.get("meepo_num", 0) for b in BOTS.values()]
-    in_db = db.max_meepo_num()
+    in_memory = [b.get("meepo_num") or 0 for b in BOTS.values()]
+    in_db = db.max_meepo_num() or 0
     current_max = max(in_memory + [in_db, 0])
     return current_max + 1
 
@@ -66,7 +66,7 @@ def load_from_db():
     for b in db.load_all_bots():
         BOTS[b["bot_id"]] = {
             "agent_name": b.get("agent_name") or b["bot_id"],
-            "meepo_num": b.get("meepo_num"),
+            "meepo_num": b.get("meepo_num") or 0,
             "hostname": b["hostname"],
             "info": b["info"],
             "modules": b["modules"],

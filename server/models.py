@@ -1,5 +1,5 @@
 # server/models.py
-from typing import List
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 
 
@@ -8,6 +8,7 @@ class RegisterReq(BaseModel):
     os: str = "unknown"
     user: str = "unknown"
     modules: List[str] = []
+    hardware: Optional[Dict[str, Any]] = None   # ← новое
 
 
 class RegisterResp(BaseModel):
@@ -19,6 +20,10 @@ class RegisterResp(BaseModel):
 class TaskReq(BaseModel):
     task_type: str
     target: str
+
+
+class HeartbeatReq(BaseModel):                  # ← новое
+    hardware: Optional[Dict[str, Any]] = None
 
 
 class ResultReq(BaseModel):

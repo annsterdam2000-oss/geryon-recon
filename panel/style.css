@@ -1793,3 +1793,13 @@ body.is-bleeding .sphere-blood .drop-3 {
 .bot.is-ready {
     animation: none;
 }
+.bot .hw {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    color: #9aa4b2;
+    line-height: 1.4;
+    word-break: break-word;
+}

