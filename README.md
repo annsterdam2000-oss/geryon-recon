@@ -43,7 +43,7 @@
 - **`agent/`** — воркеры, выполняют задачи
 - **`panel/`** — веб-панель управления
 
-## Модули
+## OSINT-модули
 
 | Модуль | Что собирает |
 | --- | --- |
@@ -58,10 +58,47 @@
 | `geo` | координаты / адрес → адрес + что рядом (100 м) |
 | `exif` | метаданные фото (GPS, дата, устройство) |
 
+## Мониторинг железа
+
+Отдельный модуль `sysinfo` собирает состояние машины, на которой запущен агент. Работает через **LibreHardwareMonitor** (LHM) — локальный web-сервер на `localhost:8085`.
+
+Агенту **не обязательно** иметь LHM: если он не запущен, `sysinfo` вернёт `{"available": false, "reason": "..."}`, и агент продолжит работу.
+
+**Что собирает:**
+
+| Поле | Описание |
+| --- | --- |
+| `cpu_load` | загрузка CPU (`CPU Total`) |
+| `cpu_temp` | температура (`Core (Tctl/Tdie)` или `CPU Package`) |
+| `gpu_load` | загрузка GPU (`GPU Core`, только из `/load/`) |
+| `gpu_temp` | температура GPU (`GPU Core`, только из `/temperature/`) |
+| `ram_used` | занятая оперативная память |
+| `ram_avail` | доступная оперативная память |
+| `disk_free` | свободно на системном диске |
+| `disk_total` | всего на системном диске |
+| `disk_used_pct` | процент занятости диска |
+
+**Как это работает:**
+
+1. Агент при регистрации шлёт `hardware` в теле `POST /register`.
+2. При каждом heartbeat (`POST /heartbeat/{bot_id}`) — обновляет `hardware` в `info` бота.
+3. Сервер складывает `hardware` в `BOTS[bot_id]["info"]["hardware"]` и в SQLite (колонка `hardware`).
+4. Панель рендерит строку железа в карточке агента.
+
+**Требования:**
+
+- Windows (LHM — Windows-only).
+- LHM запущен **от админа**.
+- Включён web-сервер: **Options → Remote Web Server → Run** (порт `8085`).
+- `http://localhost:8085/data.json` отдаёт JSON.
+
+**Если LHM не установлен** — модуль просто вернёт `available: false`, панель покажет агента без строки железа. Остальные модули работают как обычно.
+
 ## Возможности
 
 - **Распределённая обработка** — несколько агентов параллельно
 - **Подзадачи** — `username` разворачивается в 35 http-проверок, `geo` — в Nominatim + Overpass
+- **Мониторинг железа** — CPU/GPU/RAM/SSD через LibreHardwareMonitor
 - **Уведомления в Discord** — о завершённых задачах
 - **SQLite** — история задач и ботов сохраняется между запусками
 - **Веб-панель** — прогресс-бары, фильтры, экспорт результатов, красивый рендер каждого модуля
@@ -107,6 +144,12 @@ python agent.py --count N
 [+] little meepo 1 registered modules=['email', 'email_reg', 'domain', ...]
 [+] little meepo 2 registered modules=[...]
 [+] запущено 3 агентов
+```
+
+В панели у каждого агента появится строка железа (если LHM запущен):
+
+```text
+CPU 9,5 % · 40,4 °C · GPU 0,0 % · 54,0 °C · RAM 8,7 GB · SSD 42,5 GB/256,1 GB 83,4 %
 ```
 
 ## Как открыть панель
@@ -225,7 +268,8 @@ geryon-recon/
 │       ├── person.py
 │       ├── telegram.py
 │       ├── geo.py
-│       └── exif.py
+│       ├── exif.py
+│       └── sysinfo.py
 └── panel/
     ├── menu.html
     ├── about.html
@@ -274,6 +318,24 @@ Get-Process python | Stop-Process -Force
 - расширение `.js` (не `.js.txt`)
 - перезапусти сервер (static может кешироваться)
 - `Ctrl+F5` в браузере
+
+### sysinfo: `available: false` / строка железа не появляется
+
+Значит, LHM не отвечает. Проверь по порядку:
+
+1. **LHM запущен?** Открой окно программы.
+2. **От админа?** Правый клик → «Запуск от имени администратора». Без этого датчики читаются частично, а web-сервер иногда не поднимается.
+3. **Web-сервер включён?** В LHM: **Options → Remote Web Server → Run**. Галочка должна стоять.
+4. **Порт 8085?** `netstat -ano | findstr 8085` — должна быть строка `LISTENING`. Если нет — web-сервер не поднялся.
+5. **`http://localhost:8085/data.json` открывается?** Если нет — проблема на стороне LHM, не Geryon.
+6. **Проверка напрямую**:
+
+   ```bash
+   cd agent
+   python -c "from modules import sysinfo; import json; print(json.dumps(sysinfo.collect(), indent=2, ensure_ascii=False))"
+   ```
+
+   Должно вернуть `available: true` и поля `cpu_load`, `gpu_load` и т.д.
 
 ### geo: Overpass вернул 504 / 429 / 406
 
@@ -368,6 +430,10 @@ MIT License. Подробности — в файле [LICENSE](LICENSE).
 **REP_DOTA 2** — [github.com/annsterdam2000-oss](https://github.com/annsterdam2000-oss)
 
 Проект разрабатывается в учебных целях с 2026 года.
+
+## Признание
+
+Модуль `sysinfo` был выбран для публичного индекса [XERJ Corpus Hub](https://xerj.org) — open-source поисковой системы для AI-агентов, которая экономит токены, возвращая точные фрагменты кода вместо угадывания.
 
 ---
 
