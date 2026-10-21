@@ -106,12 +106,19 @@ def module_domain(target: str) -> dict:
             allow_redirects=True,
             headers={"User-Agent": "Mozilla/5.0"},
         )
-        result["http"] = {
-            "status": r.status_code,
-            "server": r.headers.get("Server"),
-            "powered_by": r.headers.get("X-Powered-By"),
-            "final_url": r.url,
-        }
+        
+        # Добавили обработку HTTP-ошибок сервера (4xx, 5xx)
+        if r.status_code >= 400:
+            result["http"] = {"status": r.status_code, "error": f"HTTP {r.status_code}"}
+        else:
+            result["http"] = {
+                "status": r.status_code,
+                "server": r.headers.get("Server"),
+                "powered_by": r.headers.get("X-Powered-By"),
+                "final_url": r.url,
+            }
+    except requests.exceptions.Timeout:
+        result["http"] = {"error": "timeout"}
     except Exception as e:
         result["http"] = {"error": str(e)}
     result["_timings"]["http"] = round(time.time() - t0, 2)
@@ -163,11 +170,16 @@ def _check_one_subdomain(host: str) -> dict:
                 headers={"User-Agent": "Mozilla/5.0"},
                 verify=False,
             )
+            # Если сервер вернул 500, это все равно "живой" поддомен (сайт есть, просто ошибка)
             info["alive"] = True
             info["http_status"] = r.status_code
             info["scheme"] = scheme
+            
             if r.status_code in (301, 302, 303, 307, 308):
                 info["redirect"] = r.headers.get("Location")
+            elif r.status_code >= 500:
+                info["error"] = f"server error {r.status_code}"
+                
             break
         except requests.exceptions.SSLError:
             continue
@@ -196,8 +208,6 @@ def _get_ssl_info(host: str) -> dict:
             with ctx.wrap_socket(sock, server_hostname=host) as ssock:
                 cert = ssock.getpeercert()
                 if not cert:
-                    # если verify_mode=CERT_NONE, getpeercert() возвращает пустой dict
-                    # пробуем через бинарный формат
                     der = ssock.getpeercert(binary_form=True)
                     if der:
                         info["error"] = "cert parse failed (binary only)"
@@ -205,28 +215,27 @@ def _get_ssl_info(host: str) -> dict:
                     info["error"] = "no cert returned"
                     return info
 
-                # issuer
                 issuer = dict(x[0] for x in cert.get("issuer", []))
                 info["issuer"] = {
                     "commonName": issuer.get("commonName"),
                     "organizationName": issuer.get("organizationName"),
                     "countryName": issuer.get("countryName"),
                 }
-                # subject
                 subject = dict(x[0] for x in cert.get("subject", []))
                 info["subject"] = {
                     "commonName": subject.get("commonName"),
                     "organizationName": subject.get("organizationName"),
                 }
-                # даты
                 info["not_before"] = cert.get("notBefore")
                 info["not_after"] = cert.get("notAfter")
-                # SAN
+                
                 san = []
                 for typ, val in cert.get("subjectAltName", []):
                     san.append(f"{typ}:{val}")
-                info["san"] = san[:50]  # ограничим
+                info["san"] = san[:50]
                 info["san_count"] = len(san)
+    except socket.timeout:
+        info["error"] = "timeout"
     except Exception as e:
         info["error"] = str(e)
     return info

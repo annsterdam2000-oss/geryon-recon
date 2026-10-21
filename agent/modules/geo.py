@@ -1,4 +1,5 @@
 # agent/modules/geo.py
+import math
 import re
 import time
 
@@ -8,7 +9,6 @@ import requests
 NOMINATIM_URL = "https://nominatim.openstreetmap.org"
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
-# ⚠️ ЗАМЕНИ на свой email — требование Nominatim
 NOMINATIM_USER_AGENT = "osint-panel/0.1 (annsterdam2000@gmail.com)"
 
 GEO_TIMEOUT = 15
@@ -37,7 +37,6 @@ def module_geo(target: str) -> dict:
     if not target:
         return {"error": "empty target"}
 
-    # --- определяем: координаты или адрес ---
     m = COORD_RE.match(target)
     if m:
         lat, lon = float(m.group(1)), float(m.group(2))
@@ -59,36 +58,43 @@ def module_geo(target: str) -> dict:
         result["display_name"] = geo.get("display_name")
         result["type"] = geo.get("type")
 
-    # --- что рядом (Overpass) ---
     if result.get("lat") is not None and result.get("lon") is not None:
         result["nearby"] = _nearby(result["lat"], result["lon"])
 
     return result
 
 
-# ---------- Nominatim ----------
-
 def _nominatim_get(path: str, params: dict) -> dict:
     headers = {"User-Agent": NOMINATIM_USER_AGENT}
-    r = requests.get(
-        f"{NOMINATIM_URL}{path}",
-        params=params,
-        headers=headers,
-        timeout=GEO_TIMEOUT,
-    )
-    r.raise_for_status()
-    return r.json()
-
-
-def _reverse_geocode(lat: float, lon: float) -> dict:
     try:
-        data = _nominatim_get("/reverse", {
-            "lat": lat, "lon": lon, "format": "json", "zoom": 18,
-            "addressdetails": 1, "accept-language": "ru,en",
-        })
+        r = requests.get(
+            f"{NOMINATIM_URL}{path}",
+            params=params,
+            headers=headers,
+            timeout=GEO_TIMEOUT,
+        )
+        if r.status_code == 429:
+            return {"error": "nominatim rate limit (429)"}
+        if r.status_code >= 400:
+            return {"error": f"nominatim HTTP {r.status_code}"}
+            
+        try:
+            return r.json()
+        except ValueError:
+            return {"error": "invalid JSON from nominatim"}
+            
+    except requests.exceptions.Timeout:
+        return {"error": "nominatim timeout"}
     except Exception as e:
         return {"error": str(e)}
 
+
+def _reverse_geocode(lat: float, lon: float) -> dict:
+    data = _nominatim_get("/reverse", {
+        "lat": lat, "lon": lon, "format": "json", "zoom": 18,
+        "addressdetails": 1, "accept-language": "ru,en",
+    })
+    
     if not data or "error" in data:
         return {"error": data.get("error", "not found")}
 
@@ -108,14 +114,13 @@ def _reverse_geocode(lat: float, lon: float) -> dict:
 
 
 def _forward_geocode(query: str) -> dict:
-    try:
-        data = _nominatim_get("/search", {
-            "q": query, "format": "json", "limit": 1,
-            "addressdetails": 1, "accept-language": "ru,en",
-        })
-    except Exception as e:
-        return {"error": str(e)}
-
+    data = _nominatim_get("/search", {
+        "q": query, "format": "json", "limit": 1,
+        "addressdetails": 1, "accept-language": "ru,en",
+    })
+    
+    if isinstance(data, dict) and "error" in data:
+        return data
     if not data:
         return {"error": "address not found"}
 
@@ -138,8 +143,6 @@ def _forward_geocode(query: str) -> dict:
         },
     }
 
-
-# ---------- Overpass (что рядом) ----------
 
 def _nearby(lat: float, lon: float) -> list:
     filters = []
@@ -169,16 +172,21 @@ def _nearby(lat: float, lon: float) -> list:
             headers=headers,
             timeout=GEO_TIMEOUT + 10,
         )
-        r.raise_for_status()
-        data = r.json()
-    except requests.exceptions.HTTPError as e:
-        # отдельно ловим 429 (rate limit) и 5xx (перегрузка)
-        code = e.response.status_code if e.response is not None else "?"
-        if code == 429:
-            return [{"error": "overpass rate limit (429) — подожди и повтори"}]
-        if 500 <= int(code) < 600:
-            return [{"error": f"overpass server error ({code}) — попробуй позже"}]
-        return [{"error": f"overpass HTTP {code}: {e}"}]
+        
+        if r.status_code == 429:
+            return [{"error": "overpass rate limit (429)"}]
+        if r.status_code >= 500:
+            return [{"error": f"overpass server error ({r.status_code})"}]
+        if r.status_code >= 400:
+            return [{"error": f"overpass HTTP {r.status_code}"}]
+            
+        try:
+            data = r.json()
+        except ValueError:
+            return [{"error": "invalid JSON from overpass"}]
+            
+    except requests.exceptions.Timeout:
+        return [{"error": "overpass timeout"}]
     except Exception as e:
         return [{"error": str(e)}]
 
@@ -214,3 +222,12 @@ def _nearby(lat: float, lon: float) -> list:
 
     items.sort(key=lambda x: x["distance_m"] if x["distance_m"] is not None else 1e9)
     return items
+
+
+def _haversine(lat1, lon1, lat2, lon2):
+    R = 6371000
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    return 2 * R * math.atan2(math.sqrt(a), math.sqrt(1 - a))

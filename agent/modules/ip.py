@@ -19,29 +19,41 @@ def module_ip(target: str) -> dict:
             },
             timeout=10,
         )
-        data = r.json()
-        if data.get("status") == "success":
-            result["geo"] = {
-                "country": data.get("country"),
-                "country_code": data.get("countryCode"),
-                "region": data.get("regionName"),
-                "city": data.get("city"),
-                "zip": data.get("zip"),
-                "lat": data.get("lat"),
-                "lon": data.get("lon"),
-                "timezone": data.get("timezone"),
-            }
-            result["network"] = {
-                "isp": data.get("isp"),
-                "org": data.get("org"),
-                "as": data.get("as"),
-                "asname": data.get("asname"),
-                "mobile": data.get("mobile"),
-                "proxy": data.get("proxy"),
-                "hosting": data.get("hosting"),
-            }
+        
+        if r.status_code == 429:
+            result["geo_error"] = "ip-api rate limit (429)"
+        elif r.status_code != 200:
+            result["geo_error"] = f"ip-api HTTP {r.status_code}"
         else:
-            result["geo_error"] = data.get("message", "unknown error")
+            try:
+                data = r.json()
+                if data.get("status") == "success":
+                    result["geo"] = {
+                        "country": data.get("country"),
+                        "country_code": data.get("countryCode"),
+                        "region": data.get("regionName"),
+                        "city": data.get("city"),
+                        "zip": data.get("zip"),
+                        "lat": data.get("lat"),
+                        "lon": data.get("lon"),
+                        "timezone": data.get("timezone"),
+                    }
+                    result["network"] = {
+                        "isp": data.get("isp"),
+                        "org": data.get("org"),
+                        "as": data.get("as"),
+                        "asname": data.get("asname"),
+                        "mobile": data.get("mobile"),
+                        "proxy": data.get("proxy"),
+                        "hosting": data.get("hosting"),
+                    }
+                else:
+                    result["geo_error"] = data.get("message", "unknown error")
+            except ValueError:
+                result["geo_error"] = "invalid JSON from ip-api"
+                
+    except requests.exceptions.Timeout:
+        result["geo_error"] = "ip-api timeout"
     except Exception as e:
         result["geo_error"] = str(e)
 
