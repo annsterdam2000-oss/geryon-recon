@@ -3,20 +3,21 @@ import time
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from models import RegisterReq, HeartbeatReq, ResultReq
 from state import (BOTS, TASKS, broadcast, bots_snapshot, tasks_snapshot,
                    next_meepo_num)
 from logic import recompute_parents
 from notify import notify_task_done
+from deps import verify_token
 import db
 
 
 router = APIRouter()
 
 
-@router.post("/register")
+@router.post("/register", dependencies=[Depends(verify_token)])
 async def register(req: RegisterReq):
     bot_id = str(uuid.uuid4())[:8]
     meepo_num = next_meepo_num()
@@ -45,14 +46,13 @@ async def register(req: RegisterReq):
     return {"bot_id": bot_id, "agent_name": agent_name, "meepo_num": meepo_num}
 
 
-@router.post("/heartbeat/{bot_id}")
+@router.post("/heartbeat/{bot_id}", dependencies=[Depends(verify_token)])
 async def heartbeat(bot_id: str, req: Optional[HeartbeatReq] = None):
     if bot_id not in BOTS:
         return {"ok": False, "error": "unknown bot"}
 
     BOTS[bot_id]["last_seen"] = time.time()
 
-    # ☄ Обновляем железо, если пришло
     if req is not None and req.hardware is not None:
         BOTS[bot_id].setdefault("info", {})
         BOTS[bot_id]["info"]["hardware"] = req.hardware
@@ -106,7 +106,7 @@ def _find_task_for_bot(bot_id: str):
     return None
 
 
-@router.post("/result")
+@router.post("/result", dependencies=[Depends(verify_token)])
 async def result(req: ResultReq):
     if req.task_id in TASKS:
         t = TASKS[req.task_id]

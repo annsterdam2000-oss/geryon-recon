@@ -1,17 +1,18 @@
 # server/routes/panel.py
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from sites import COMPOSITE_MODULES
 from models import TaskReq
 from state import BOTS, TASKS, is_parent, broadcast, bots_snapshot, tasks_snapshot
 from logic import cleanup, create_composite_task, create_simple_task
+from deps import verify_token
 import db
 
 
 router = APIRouter()
 
 
-@router.post("/task")
+@router.post("/task", dependencies=[Depends(verify_token)])
 async def create_task(req: TaskReq):
     if req.task_type in COMPOSITE_MODULES:
         task_id = create_composite_task(req.task_type, req.target)
@@ -35,7 +36,7 @@ async def get_tasks():
     return tasks_snapshot()
 
 
-@router.post("/remove/bot/{bot_id}")
+@router.post("/remove/bot/{bot_id}", dependencies=[Depends(verify_token)])
 async def remove_bot(bot_id: str):
     if bot_id not in BOTS:
         return {"ok": False, "error": "unknown bot"}
@@ -51,7 +52,7 @@ async def remove_bot(bot_id: str):
     return {"ok": True}
 
 
-@router.post("/remove/task/{task_id}")
+@router.post("/remove/task/{task_id}", dependencies=[Depends(verify_token)])
 async def remove_task(task_id: str):
     if task_id not in TASKS:
         return {"ok": False, "error": "unknown task"}

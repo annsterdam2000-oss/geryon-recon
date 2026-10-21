@@ -3,10 +3,16 @@
 import platform
 import socket
 import time
+import os
 
 import requests
 
 from modules import sysinfo
+from dotenv import load_dotenv
+from pathlib import Path
+# Ищем .env в папке server, которая находится на уровень выше
+dotenv_path = Path(__file__).resolve().parent.parent / "server" / ".env"
+load_dotenv(dotenv_path=dotenv_path)
 
 
 class ServerClient:
@@ -16,6 +22,11 @@ class ServerClient:
         self.bot_id = None
         self.agent_name = None
         self.meepo_num = None
+        
+        # Берем токен из переменной окружения (или ставим дефолт, если не задан)
+        api_token = os.getenv("GERYON_API_TOKEN", "geryon_secret_key_2026")
+        # Создаем заголовок для всех запросов
+        self.headers = {"X-API-Key": api_token}
 
     def get_info(self):
         return {
@@ -30,7 +41,8 @@ class ServerClient:
         info = self.get_info()
         while True:
             try:
-                r = requests.post(f"{self.server}/register", json=info, timeout=10)
+                # Добавили headers=self.headers
+                r = requests.post(f"{self.server}/register", json=info, headers=self.headers, timeout=10)
                 r.raise_for_status()
                 data = r.json()
                 self.bot_id = data["bot_id"]
@@ -47,9 +59,11 @@ class ServerClient:
         """Шлём пульс + свежее железо. Если сервер старое тело — оно просто
         проигнорирует payload, last_seen всё равно обновится."""
         payload = {"hardware": sysinfo.collect()}
+        # Добавили headers=self.headers
         r = requests.post(
             f"{self.server}/heartbeat/{self.bot_id}",
             json=payload,
+            headers=self.headers,
             timeout=10,
         )
         r.raise_for_status()
@@ -57,6 +71,7 @@ class ServerClient:
 
     def send_result(self, task_id: str, status: str, result: dict, error: str = ""):
         try:
+            # Добавили headers=self.headers
             requests.post(
                 f"{self.server}/result",
                 json={
@@ -66,6 +81,7 @@ class ServerClient:
                     "result": result,
                     "error": error,
                 },
+                headers=self.headers,
                 timeout=10,
             )
         except Exception as e:

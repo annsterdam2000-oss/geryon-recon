@@ -1,6 +1,9 @@
 # server/config.py
 # ☄ Zeus' thunder — timeouts, retries, the laws of the server.
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv()
 
 # Таймауты (в секундах)
 BOT_TIMEOUT = 30
@@ -30,3 +33,7 @@ DB_PATH = Path(__file__).resolve().parent / "osint.db"
 # 0.0.0.0   — доступен в локальной сети (дома, для панели с телефона)
 HOST = "0.0.0.0"
 PORT = 5555
+
+# --- Секретный ключ для API ---
+# Если переменной окружения нет, используется дефолтный ключ (поменяй его на свой!)
+API_TOKEN = os.getenv("GERYON_API_TOKEN", "geryon_secret_key_2026")
