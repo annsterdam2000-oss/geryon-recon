@@ -4,12 +4,13 @@ import platform
 import socket
 import time
 import os
+from pathlib import Path
 
 import requests
+from dotenv import load_dotenv
 
 from modules import sysinfo
-from dotenv import load_dotenv
-from pathlib import Path
+
 # Ищем .env в папке server, которая находится на уровень выше
 dotenv_path = Path(__file__).resolve().parent.parent / "server" / ".env"
 load_dotenv(dotenv_path=dotenv_path)
@@ -17,15 +18,14 @@ load_dotenv(dotenv_path=dotenv_path)
 
 class ServerClient:
     def __init__(self, server_url: str, modules: list):
-        self.server = server_url
+        self.server = server_url.rstrip("/") # убираем слэш в конце, если есть
         self.modules = modules
         self.bot_id = None
         self.agent_name = None
         self.meepo_num = None
         
-        # Берем токен из переменной окружения (или ставим дефолт, если не задан)
+        # Берем токен из переменной окружения
         api_token = os.getenv("GERYON_API_TOKEN", "geryon_secret_key_2026")
-        # Создаем заголовок для всех запросов
         self.headers = {"X-API-Key": api_token}
 
     def get_info(self):
@@ -41,7 +41,6 @@ class ServerClient:
         info = self.get_info()
         while True:
             try:
-                # Добавили headers=self.headers
                 r = requests.post(f"{self.server}/register", json=info, headers=self.headers, timeout=10)
                 r.raise_for_status()
                 data = r.json()
@@ -56,10 +55,8 @@ class ServerClient:
                 time.sleep(3)
 
     def heartbeat(self):
-        """Шлём пульс + свежее железо. Если сервер старое тело — оно просто
-        проигнорирует payload, last_seen всё равно обновится."""
+        """Шлём пульс + свежее железо."""
         payload = {"hardware": sysinfo.collect()}
-        # Добавили headers=self.headers
         r = requests.post(
             f"{self.server}/heartbeat/{self.bot_id}",
             json=payload,
@@ -70,19 +67,30 @@ class ServerClient:
         return r.json()
 
     def send_result(self, task_id: str, status: str, result: dict, error: str = ""):
-        try:
-            # Добавили headers=self.headers
-            requests.post(
-                f"{self.server}/result",
-                json={
-                    "task_id": task_id,
-                    "bot_id": self.bot_id,
-                    "status": status,
-                    "result": result,
-                    "error": error,
-                },
-                headers=self.headers,
-                timeout=10,
-            )
-        except Exception as e:
-            print(f"[!] result send failed: {e}")
+        max_retries = 5
+        for attempt in range(max_retries):
+            try:
+                r = requests.post(
+                    f"{self.server}/result",
+                    json={
+                        "task_id": task_id,
+                        "bot_id": self.bot_id,
+                        "status": status,
+                        "result": result,
+                        "error": error,
+                    },
+                    headers=self.headers,
+                    timeout=10,
+                )
+                if r.status_code == 200:
+                    print(f"[+] result {task_id} sent successfully")
+                    return
+                else:
+                    print(f"[!] result send failed (HTTP {r.status_code}), retry {attempt+1}/{max_retries}")
+            except Exception as e:
+                print(f"[!] result send failed: {e}, retry {attempt+1}/{max_retries}")
+            
+            if attempt < max_retries - 1:
+                time.sleep(3)
+        
+        print(f"[X] CRITICAL: Could not send result for task {task_id} after {max_retries} attempts")

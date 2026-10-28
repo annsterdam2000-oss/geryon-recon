@@ -3,13 +3,21 @@
 import argparse
 import threading
 import time
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 
 from client import ServerClient
 from modules import MODULE_FUNCS
 
+# Загружаем .env из папки server (на уровень выше)
+dotenv_path = Path(__file__).resolve().parent.parent / "server" / ".env"
+load_dotenv(dotenv_path=dotenv_path)
 
-SERVER = "http://127.0.0.1:5555"
+# Берем URL из переменной, а если её нет — используем localhost
+SERVER = os.getenv("GERYON_SERVER_URL", "http://127.0.0.1:5555")
 HEARTBEAT_INTERVAL = 2
+
 MODULES = [
     "email",
     "email_reg",
@@ -56,6 +64,7 @@ def handle_task(client: ServerClient, task: dict):
 
 
 def agent_loop(fallback_name: str = "agent"):
+    # Теперь SERVER берется из конфига сверху
     client = ServerClient(SERVER, MODULES)
     client.register()
 

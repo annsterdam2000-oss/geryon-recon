@@ -110,44 +110,25 @@ def _find_task_for_bot(bot_id: str):
 async def result(req: ResultReq):
     if req.task_id in TASKS:
         t = TASKS[req.task_id]
+        
+        # --- ЗАЩИТА ОТ ДУБЛИРОВАНИЯ ---
+        # Если задача уже выполнена или провалена, не принимаем результат повторно
+        if t.get("status") in ("done", "failed"):
+            print(f"[!] Duplicate result ignored for task {req.task_id} (status: {t.get('status')})")
+            return {"ok": False, "error": "task already completed"}
+
+        # Проверка, что задачу выполняет именно этот бот
         if t.get("bot_id") != req.bot_id:
             return {"ok": False, "error": "task assigned to another bot"}
+            
         t["status"] = req.status
         t["result"] = req.result
         t["error"] = req.error
         t["finished_at"] = time.time()
         db.save_task(t)
+        
     if req.bot_id in BOTS:
         BOTS[req.bot_id]["current_task"] = None
     print(f"[=] result {req.task_id} from {req.bot_id}: {req.status}")
 
-    was_parent_done = False
-    if req.task_id in TASKS:
-        t = TASKS[req.task_id]
-        if t.get("parent_id"):
-            parent = TASKS.get(t["parent_id"])
-            if parent and parent.get("status") == "done":
-                was_parent_done = True
-
-    recompute_parents(time.time())
-
-    notify_target = None
-    if req.task_id in TASKS:
-        t = TASKS[req.task_id]
-        if t.get("parent_id"):
-            parent = TASKS.get(t["parent_id"])
-            if parent and parent.get("status") == "done" and not was_parent_done:
-                notify_target = parent
-        else:
-            if t.get("status") in ("done", "failed"):
-                notify_target = t
-
-    if notify_target:
-        try:
-            notify_task_done(notify_target)
-        except Exception as e:
-            print(f"[!] notify failed: {e}")
-
-    await broadcast({"type": "tasks", "tasks": tasks_snapshot()})
-    await broadcast({"type": "bots", "bots": bots_snapshot()})
-    return {"ok": True}
+    # ... дальше идет твой код с recompute_parents, notify_target и т.д. ...

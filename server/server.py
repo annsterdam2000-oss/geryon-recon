@@ -1,77 +1,53 @@
 # server/server.py
-from pathlib import Path
-
-from dotenv import load_dotenv
-
-# Загружаем .env из папки server/
-load_dotenv(Path(__file__).resolve().parent / ".env")
-
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
 import uvicorn
-
-import db
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from config import HOST, PORT
-from routes.agent import router as agent_router
-from routes.panel import router as panel_router
-from state import manager, bots_snapshot, tasks_snapshot, load_from_db
 
-
-PANEL_DIR = Path(__file__).resolve().parent.parent / "panel"
+from state import BOTS, TASKS
+import db
+from routes import agent, panel
 
 app = FastAPI()
-app.mount("/static", StaticFiles(directory=str(PANEL_DIR)), name="static")
 
-app.include_router(agent_router)
-app.include_router(panel_router)
+# Подключаем роутеры
+app.include_router(agent.router)
+app.include_router(panel.router)
+
+# Отдаем статику (панель)
+app.mount("/static", StaticFiles(directory="panel"), name="static")
 
 
 @app.on_event("startup")
-async def startup():
+async def startup_event():
+    print("[*] Geryon Recon — starting up...")
+    
+    # Инициализация БД (создание таблиц, если их нет)
     db.init_db()
-    load_from_db()
+    
+    # Загружаем ботов и задачи из БД в память
+    loaded_bots = db.load_bots()
+    loaded_tasks = db.load_tasks()
+    
+    BOTS.update(loaded_bots)
+    TASKS.update(loaded_tasks)
+    
+    print(f"[+] loaded {len(BOTS)} bots, {len(TASKS)} tasks from DB")
 
-
-@app.on_event("shutdown")
-async def shutdown():
-    db.close()
-
-
-@app.websocket("/ws")
-async def ws_endpoint(ws: WebSocket):
-    await manager.connect(ws)
-    await ws.send_json({"type": "bots", "bots": bots_snapshot()})
-    await ws.send_json({"type": "tasks", "tasks": tasks_snapshot()})
-    try:
-        while True:
-            await ws.receive_text()
-    except WebSocketDisconnect:
-        manager.disconnect(ws)
-
-
-def _read_html(filename: str) -> str:
-    return (PANEL_DIR / filename).read_text(encoding="utf-8")
-
-
-@app.get("/", response_class=HTMLResponse)
-async def menu():
-    return _read_html("menu.html")
-
-
-@app.get("/panel", response_class=HTMLResponse)
-async def panel():
-    return _read_html("panel.html")
-
-
-@app.get("/about", response_class=HTMLResponse)
-async def about():
-    return _read_html("about.html")
-
+    # --- ВОССТАНОВЛЕНИЕ ОЧЕРЕДИ ---
+    # Если задача была в статусе 'running', но сервер перезапустился,
+    # возвращаем её в очередь (pending), чтобы агенты могли её взять.
+    restored_count = 0
+    for tid, t in TASKS.items():
+        if t.get("status") == "running":
+            t["status"] = "pending"
+            t["bot_id"] = None
+            t["started_at"] = None
+            db.save_task(t)
+            restored_count += 1
+            
+    if restored_count > 0:
+        print(f"[*] Restored {restored_count} running tasks to pending queue")
 
 if __name__ == "__main__":
-    print(f"[*] Geryon Recon — listening on http://{HOST}:{PORT}")
-    if HOST == "0.0.0.0":
-        print("[!] WARNING: сервер открыт в локальной сети. "
-              "Не используй в общественных Wi-Fi.")
     uvicorn.run(app, host=HOST, port=PORT)

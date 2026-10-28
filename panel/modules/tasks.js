@@ -33,10 +33,21 @@ const SPHERE_SVG = `
 
 export async function refresh() {
     try {
-        const [bots, tasks] = await Promise.all([
-            fetch("/bots").then(r => r.json()),
-            fetch("/tasks").then(r => r.json()),
+        const [botsRes, tasksRes] = await Promise.all([
+            fetch("/bots"),
+            fetch("/tasks"),
         ]);
+
+        if (!botsRes.ok || !tasksRes.ok) {
+            console.warn("Сервер вернул ошибку при обновлении данных");
+            return;
+        }
+
+        const [bots, tasks] = await Promise.all([
+            botsRes.json(),
+            tasksRes.json(),
+        ]);
+
         renderBots(bots, botsEl, refresh);
         renderTasks(tasks);
 
@@ -109,8 +120,20 @@ function renderTasks(tasks) {
                 <div class="meta"></div>
                 <div class="result"></div>
             `;
-            card.querySelector(".rm").onclick = () =>
-                fetch(`/remove/task/${t.task_id}`, { method: "POST" }).then(refresh);
+            
+            // Обновленная обработка удаления с проверкой ошибок
+            card.querySelector(".rm").onclick = async () => {
+                try {
+                    const r = await fetch(`/remove/task/${t.task_id}`, { method: "POST" });
+                    if (!r.ok) {
+                        alert("Не удалось удалить задачу (ошибка сервера)");
+                        return;
+                    }
+                    refresh();
+                } catch (e) {
+                    alert("Сервер недоступен. Проверьте соединение.");
+                }
+            };
             card.querySelector(".exp").onclick = () => exportTask(t);
             tasksEl.appendChild(card);
             taskCards[t.task_id] = card;
@@ -267,11 +290,22 @@ export async function addTask() {
     const target = targetInput.value.trim();
     if (!target) return;
 
-    await fetch("/task", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task_type, target }),
-    });
+    try {
+        const r = await fetch("/task", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ task_type, target }),
+        });
+
+        if (!r.ok) {
+            const errorData = await r.json().catch(() => ({}));
+            alert(`Ошибка сервера: ${errorData.detail || r.statusText}`);
+            return;
+        }
+    } catch (e) {
+        alert("Сервер недоступен. Проверьте соединение.");
+        return;
+    }
 
     targetInput.value = "";
     updateAddBtnState();
