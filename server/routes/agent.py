@@ -110,7 +110,7 @@ def _find_task_for_bot(bot_id: str):
 async def result(req: ResultReq):
     if req.task_id in TASKS:
         t = TASKS[req.task_id]
-        
+
         # --- ЗАЩИТА ОТ ДУБЛИРОВАНИЯ ---
         # Если задача уже выполнена или провалена, не принимаем результат повторно
         if t.get("status") in ("done", "failed"):
@@ -120,15 +120,25 @@ async def result(req: ResultReq):
         # Проверка, что задачу выполняет именно этот бот
         if t.get("bot_id") != req.bot_id:
             return {"ok": False, "error": "task assigned to another bot"}
-            
+
         t["status"] = req.status
         t["result"] = req.result
         t["error"] = req.error
         t["finished_at"] = time.time()
         db.save_task(t)
-        
+
+        # Пересчитываем статус родителя (если это подзадача)
+        recompute_parents()
+
+        # Уведомление в Discord о завершённой задаче
+        notify_task_done(t)
+
     if req.bot_id in BOTS:
         BOTS[req.bot_id]["current_task"] = None
     print(f"[=] result {req.task_id} from {req.bot_id}: {req.status}")
 
-    # ... дальше идет твой код с recompute_parents, notify_target и т.д. ...
+    # Синхронизируем клиентов панели
+    await broadcast({"type": "bots", "bots": bots_snapshot()})
+    await broadcast({"type": "tasks", "tasks": tasks_snapshot()})
+
+    return {"ok": True}

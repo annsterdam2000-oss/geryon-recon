@@ -49,11 +49,27 @@ def tasks_snapshot() -> List[dict]:
     for tid, t in TASKS.items():
         if t.get("parent_id"):
             continue
+        
         item = dict(t)
+        
         if is_parent(t):
+            # Собираем все живые подзадачи
             item["subtasks_full"] = [
                 TASKS[sid] for sid in t["subtasks"] if sid in TASKS
             ]
+            
+            # Считаем прогресс для панели (чтобы полоска двигалась)
+            done_count = 0
+            failed_count = 0
+            for sub in item["subtasks_full"]:
+                if sub.get("status") == "done":
+                    done_count += 1
+                elif sub.get("status") == "failed":
+                    failed_count += 1
+            
+            item["progress_done"] = done_count
+            item["progress_failed"] = failed_count
+            
         out.append(item)
     return out
 
