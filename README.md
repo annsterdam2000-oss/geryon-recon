@@ -124,7 +124,10 @@ python agent.py --count 1
 * **`/about`** — информация о проекте.
 
 ## Лицензия
-MIT License. Подробности — в файле LICENSE.
+Этот проект распространяется под лицензией GNU Affero General Public License v3.0 (AGPL-3.0).
+Подробности смотрите в файле LICENSE.
+
+Примечание: Предыдущие версии проекта (до v1.4.0) распространялись под лицензией MIT.
 
 ## Автор
 **REP_DOTA 2** — github.com/annsterdam2000-oss
