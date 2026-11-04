@@ -5,6 +5,10 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.0.0/),
 и проект придерживается [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [1.3.1] - 2026-11-04
+### Изменено
+- **Лицензия:** Проект переведен с MIT на AGPL-3.0. Предыдущие релизы (до v1.3.1) остаются под MIT.
+
 ## [1.3.0] - 2026-10-31
 
 ### Added
